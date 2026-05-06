@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include <fstream>
+#include <algorithm>
 
 struct Assets{
 	sf::Font font;
@@ -38,7 +39,7 @@ struct Wall{
 
 struct Player{
 	sf::Vector2f size=sf::Vector2f(global_assets.player_texture.getSize());	
-	sf::Vector2f velocity={0.f,-10.f};
+	sf::Vector2f velocity={-1.f,0.f};
 	sf::Vector2f checkpoint={0.f,0.f};
 	sf::Sprite sprite{global_assets.player_texture};
 	bool is_touching_down=false;
@@ -51,36 +52,78 @@ struct Player{
 		checkpoint=setup_coords;
 	}
 	
-	void wall_collision_x(std::vector<Wall>& walls){
+	void wall_collision_x(std::vector<Wall>& walls,float dt){
+		is_touching_right=false;
+		is_touching_left=false;
+		is_touching_up=false;
+		is_touching_down=false;
 		for (int i=0;i<walls.size();i++){
 			if (sprite.getGlobalBounds().findIntersection(walls[i].sprite.getGlobalBounds())){
 				if (velocity.x>0){
-					is_touching_right=true;is_touching_left=false;
-					
-					sprite.setPosition({sprite.getPosition().x-velocity.x,sprite.getPosition().y});
+					is_touching_right=true;
+					is_touching_left=false;
+					sprite.move({walls[i].sprite.getPosition().x-sprite.getPosition().x-size.x,0.f});
 				} else{
-					is_touching_left=true;is_touching_right=false;
-					sprite.setPosition({sprite.getPosition().x-velocity.x,sprite.getPosition().y});
+					is_touching_left=true;
+					is_touching_right=false;
+					sprite.move({walls[i].sprite.getPosition().x-sprite.getPosition().x+size.x,0.f});
 				}	
-				velocity.x=-velocity.x;
-				//velocity.x=0;
+				//velocity.x=-velocity.x;
+				velocity.x=0;
 			}
 		}
 	}
-	void wall_collision_y(std::vector<Wall>& walls){
+
+	void wall_collision_y(std::vector<Wall>& walls, float dt){
 		for (int i=0;i<walls.size();i++){
 			if (sprite.getGlobalBounds().findIntersection(walls[i].sprite.getGlobalBounds())){
 				if (velocity.y>0){
-					is_touching_down=true;is_touching_up=false;
-					
-					sprite.setPosition({sprite.getPosition().x,sprite.getPosition().y-velocity.y});
+					is_touching_down=true;
+					is_touching_up=false;
+					sprite.move({0.f,walls[i].sprite.getPosition().y-sprite.getPosition().y-size.y});
 				} else{
-					is_touching_up=true;is_touching_down=false;
-					sprite.setPosition({sprite.getPosition().x,sprite.getPosition().y-velocity.y});
+					is_touching_up=true;
+					is_touching_down=false;
+					sprite.move({0.f,walls[i].sprite.getPosition().y-sprite.getPosition().y+size.y});
 				}	
-				velocity.y=-velocity.y;
-				//velocity.y=0;
+				//velocity.y=-velocity.y;
+				velocity.y=0;
 			}
+		}
+	}
+
+	void gravity(float dt){
+		if (!is_touching_down){
+			velocity.y+=0.15*dt;
+		}
+	}
+	
+	void jumpIfPossible(){
+		if (is_touching_down){
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
+				velocity.y-=10;
+			}
+		}
+	}
+
+	void sideways_movement(float dt){
+		static float top_speed=10;
+		static float speed_loss=0.05;
+		static float acceleration=0.5;
+		float mult=0.6;
+		if (is_touching_down){
+			mult=2;
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)){
+			velocity.x=std::min(velocity.x+acceleration*mult*dt,top_speed);
+		} else{
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)){
+				velocity.x=std::max(velocity.x-acceleration*mult*dt,-top_speed);
+			} else{
+				velocity.x-=velocity.x*speed_loss*dt*mult;		
+			}
+			if (abs(velocity.x)<0.1f){velocity.x=0.f;}
+		
 		}
 	}
 
@@ -124,7 +167,6 @@ int main()
 	global_assets.LoadAllTextures();
 	Player player;
 	std::vector<Wall> walls;
-
 	sf::Clock delta_clock;
 	sf::Time delta_time(sf::milliseconds(1000/60));
 	float dt;
@@ -139,16 +181,19 @@ int main()
 		dt=delta_clock.getElapsedTime()/delta_time;
 		delta_clock.restart();
 		if (dt>5){dt=5;}
+		player.sideways_movement(dt);
+		player.jumpIfPossible();
+		player.gravity(dt);
 		player.sprite.move({player.velocity.x*dt,0.f});
-		player.wall_collision_x(walls);
+		player.wall_collision_x(walls,dt);
 		player.sprite.move({0.f,player.velocity.y*dt});
-		player.wall_collision_y(walls);
+		player.wall_collision_y(walls,dt);
 		
 
 		window.clear();
 		draw_walls(walls,window);
 		draw_player(player,window);
 		window.display();
-		//sf::sleep(sf::milliseconds(100));
+		//sf::sleep(sf::milliseconds(200));
 	}
 }
