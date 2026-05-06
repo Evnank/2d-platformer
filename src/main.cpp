@@ -94,25 +94,27 @@ struct Player{
 
 	void gravity(float dt){
 		if (!is_touching_down){
-			velocity.y+=0.15*dt;
+			velocity.y+=0.5*dt;
 		}
 	}
 	
 	void jumpIfPossible(){
 		if (is_touching_down){
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
-				velocity.y-=10;
+				velocity.y-=15;
 			}
 		}
 	}
 
 	void sideways_movement(float dt){
-		static float top_speed=10;
-		static float speed_loss=0.05;
-		static float acceleration=0.5;
-		float mult=0.6;
+		static float top_speed=8;
+		static float speed_loss=0.4;
+		static float acceleration=0.3;
+		float mult=0.7;
+		float lossmult=0.10;
 		if (is_touching_down){
 			mult=2;
+			lossmult=1;
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)){
 			velocity.x=std::min(velocity.x+acceleration*mult*dt,top_speed);
@@ -120,7 +122,7 @@ struct Player{
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)){
 				velocity.x=std::max(velocity.x-acceleration*mult*dt,-top_speed);
 			} else{
-				velocity.x-=velocity.x*speed_loss*dt*mult;		
+				velocity.x-=velocity.x*speed_loss*dt*lossmult;		
 			}
 			if (abs(velocity.x)<0.1f){velocity.x=0.f;}
 		
