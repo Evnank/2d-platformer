@@ -6,6 +6,8 @@
 #include <fstream>
 #include <algorithm>
 
+bool DEBUGGING_LEVELS_AND_BUILDING_THEM=false;
+
 struct Assets{
 	sf::Font font;
 	sf::Texture player_texture;
@@ -93,7 +95,7 @@ struct Player{
 	}
 
 	void gravity(float dt){
-		if (!is_touching_down){
+		if (!is_touching_down and !DEBUGGING_LEVELS_AND_BUILDING_THEM){
 			velocity.y+=0.5*dt;
 		}
 	}
@@ -107,10 +109,10 @@ struct Player{
 	}
 
 	void sideways_movement(float dt){
-		static float top_speed=8;
+		static float top_speed=10;
 		static float speed_loss=0.4;
-		static float acceleration=0.3;
-		float mult=0.7;
+		static float acceleration=0.4;
+		float mult=1;
 		float lossmult=0.10;
 		if (is_touching_down){
 			mult=2;
@@ -125,10 +127,59 @@ struct Player{
 				velocity.x-=velocity.x*speed_loss*dt*lossmult;		
 			}
 			if (abs(velocity.x)<0.1f){velocity.x=0.f;}
-		
 		}
 	}
 
+	void debug_movement(float dt){
+		static float top_speed=10;
+		static float speed_loss=0.4;
+		static float acceleration=0.4;
+		float mult=1;
+		float lossmult=0.10;
+		if (is_touching_down){
+			mult=2;
+			lossmult=1;
+		}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)){
+			velocity.y=std::min(velocity.y+acceleration*mult*dt,top_speed);
+		} else{
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
+				velocity.y=std::max(velocity.y-acceleration*mult*dt,-top_speed);
+			} else{
+				velocity.y-=velocity.y*speed_loss*dt*lossmult;		
+			}
+			if (abs(velocity.y)<0.1f){velocity.y=0.f;}
+		}
+	};
+
+};
+
+struct Camera{
+	sf::View view;
+
+	void setup(){
+		sf::FloatRect rect({0.f,0.f}, {1920.f,1080.f});
+		view=sf::View(rect);
+	}
+
+	void follow_player(Player& player){
+		static float boundry_x=100;
+		static float boundry_y=200;
+		sf::Vector2f player_pos=player.sprite.getPosition();
+		sf::Vector2f camera_pos=view.getCenter();
+		if (player_pos.y-camera_pos.y<-boundry_y){
+			view.move({0.f,player_pos.y-camera_pos.y+boundry_y});
+		}
+		if (player_pos.y-camera_pos.y>boundry_y){
+			view.move({0.f,player_pos.y-camera_pos.y-boundry_y});
+		}
+		if (player_pos.x-camera_pos.x<-boundry_x){
+			view.move({player_pos.x-camera_pos.x+boundry_x,0.f});
+		}
+		if (player_pos.x-camera_pos.x>boundry_x){
+			view.move({player_pos.x-camera_pos.x-boundry_x,0.f});
+		}
+	}
 };
 
 void LoadLevel(Player& player,std::vector<Wall>& walls, int level_number){
@@ -169,10 +220,15 @@ int main()
 	global_assets.LoadAllTextures();
 	Player player;
 	std::vector<Wall> walls;
+	Camera camera;
+	camera.setup();
+
+
 	sf::Clock delta_clock;
 	sf::Time delta_time(sf::milliseconds(1000/60));
 	float dt;
 	LoadLevel(player,walls,1);
+
 	while (window.isOpen())
 	{
 
@@ -184,6 +240,7 @@ int main()
 		delta_clock.restart();
 		if (dt>5){dt=5;}
 		player.sideways_movement(dt);
+		if (DEBUGGING_LEVELS_AND_BUILDING_THEM){player.debug_movement(dt);}
 		player.jumpIfPossible();
 		player.gravity(dt);
 		player.sprite.move({player.velocity.x*dt,0.f});
@@ -192,7 +249,9 @@ int main()
 		player.wall_collision_y(walls,dt);
 		
 
+		camera.follow_player(player);
 		window.clear();
+		window.setView(camera.view);
 		draw_walls(walls,window);
 		draw_player(player,window);
 		window.display();
