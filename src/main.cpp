@@ -8,6 +8,7 @@
 
 
 bool DEBUGGING_LEVELS_AND_BUILDING_THEM=false;
+bool CHEAT_MODE=true;
 
 struct Input{
 	bool M;
@@ -16,6 +17,10 @@ struct Input{
 	bool Mouse2;
 	bool F9;
 	bool LShift;
+	bool left;
+	bool right;
+	bool down;
+	bool up;
 
 	void read(const std::optional<sf::Event>& event){
 		if (const auto* key=event->getIf<sf::Event::KeyPressed>()){
@@ -23,6 +28,10 @@ struct Input{
 			if (key->code == sf::Keyboard::Key::Escape){Escape=true;}
 			if (key->code == sf::Keyboard::Key::F9){F9=true;}
 			if (key->code == sf::Keyboard::Key::LShift){LShift=true;}
+			if (key->code == sf::Keyboard::Key::Left){left=true;}
+			if (key->code == sf::Keyboard::Key::Right){right=true;}
+			if (key->code == sf::Keyboard::Key::Down){down=true;}
+			if (key->code == sf::Keyboard::Key::Up){up=true;}
 		}
 		if (const auto* mouse=event->getIf<sf::Event::MouseButtonPressed>()){
 			if (mouse->button == sf::Mouse::Button::Left){Mouse1=true;}
@@ -38,6 +47,10 @@ struct Input{
 		F9=false;
 		Mouse1=false;
 		Mouse2=false;
+		left=false;
+	 	right=false;
+		down=false;
+		up=false;
 	}
 
 };
@@ -47,24 +60,21 @@ struct Assets{
 	sf::Texture player_texture;
 	sf::Texture wall_texture;
 	sf::Texture finish_texture;
-	sf::Texture checkpoint_texture;
+	sf::Texture checkpoint_texture1;
+	sf::Texture checkpoint_texture2;
 	sf::Texture sky_texture;
 	void LoadAllTextures(){
 	//	if (!font.openFromFile("assets/fonts/arial.ttf")){}
 		if (!player_texture.loadFromFile("assets/textures/PlayerTexture.png")){}
 		if (!wall_texture.loadFromFile("assets/textures/WallTexture.png")){}
 		if (!finish_texture.loadFromFile("assets/textures/FinishTexture.png")){}
+		if (!checkpoint_texture1.loadFromFile("assets/textures/FinishTexture.png")){}
+		if (!checkpoint_texture2.loadFromFile("assets/textures/FinishTexture.png")){}
 	}
 };
 
 Assets global_assets;
 
-bool AABBcheck(sf::Vector2f cords1,sf::Vector2f size1,sf::Vector2f cords2,sf::Vector2f size2){
-	if (cords1.x+size1.x>cords2.x and cords1.x<cords2.x+size2.x and cords1.y+size1.y>cords2.y and cords1.y<cords2.y+size2.y){
-		return true;
-	}
-		return false;
-}
 struct Wall{
 	sf::Vector2f size=sf::Vector2f(global_assets.wall_texture.getSize());
 	sf::Sprite sprite{global_assets.wall_texture};
@@ -74,10 +84,26 @@ struct Wall{
 	}
 };
 
+struct Checkpoint{
+	sf::Vector2f size=sf::Vector2f(global_assets.checkpoint_texture1.getSize());	
+	sf::Sprite sprite{global_assets.checkpoint_texture1};
+	bool activated=false;
+
+	void setup(sf::Vector2f setup_coords){
+		sprite.setPosition(setup_coords);
+	}
+
+	void activate(){
+		sprite.setTexture(global_assets.checkpoint_texture2);
+		activated=true;
+	}
+
+};
+
 struct Player{
 	sf::Vector2f size=sf::Vector2f(global_assets.player_texture.getSize());	
 	sf::Vector2f velocity={0.f,0.f};
-	sf::Vector2f checkpoint={0.f,0.f};
+	sf::Vector2f current_checkpoint={0.f,0.f};
 	sf::Sprite sprite{global_assets.player_texture};
 	bool is_touching_down=false;
 	bool is_touching_up=false;
@@ -85,10 +111,10 @@ struct Player{
 	bool is_touching_right=false;
 
 	void setup(sf::Vector2f setup_coords){
-		if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){sprite.setPosition(setup_coords);}
-		checkpoint=setup_coords;
+		sprite.setPosition(setup_coords);
+		current_checkpoint=setup_coords;
 		velocity={0.f,0.f};
-		checkpoint={0.f,0.f};
+		current_checkpoint={0.f,0.f};
 	}
 	
 	void wall_collision_x(std::vector<Wall>& walls,float dt){
@@ -137,17 +163,18 @@ struct Player{
 		}
 	}
 	
-	void jumpIfPossible(){
+	void jumpIfPossible(Input input){
 		if (is_touching_down){
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
-				velocity.y-=15;
+				if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){velocity.y-=15;}
 			}
 		}
 	}
-	void sideways_movement(float dt){
+	void sideways_movement(float dt, Input input){
 		static float top_speed=10;
 		static float speed_loss=0.4;
 		static float acceleration=0.4;
+		bool move=false;
 		float mult=1;
 		float lossmult=0.10;
 		if (is_touching_down){
@@ -156,20 +183,23 @@ struct Player{
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)){
 			velocity.x=std::min(velocity.x+acceleration*mult*dt,top_speed);
-		} else{
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)){
-				velocity.x=std::max(velocity.x-acceleration*mult*dt,-top_speed);
-			} else{
-				velocity.x-=velocity.x*speed_loss*dt*lossmult;		
-			}
-			if (abs(velocity.x)<0.1f){velocity.x=0.f;}
-		}
+			move=true;
+		} 
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)){
+			velocity.x=std::max(velocity.x-acceleration*mult*dt,-top_speed);
+			move=true;
+		} 
+		if (!move){velocity.x-=velocity.x*speed_loss*dt*lossmult;}	
+			
+		if (!move and abs(velocity.x)<0.1f){velocity.x=0.f;}
 	}
 
 	void debug_movement(float dt){
 		static float top_speed=10;
 		static float speed_loss=0.4;
 		static float acceleration=0.4;
+		bool move=false;
 		float mult=1;
 		float lossmult=0.10;
 		if (is_touching_down){
@@ -178,15 +208,26 @@ struct Player{
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)){
 			velocity.y=std::min(velocity.y+acceleration*mult*dt,top_speed);
-		} else{
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
-				velocity.y=std::max(velocity.y-acceleration*mult*dt,-top_speed);
-			} else{
-				velocity.y-=velocity.y*speed_loss*dt*lossmult;		
-			}
-			if (abs(velocity.y)<0.1f){velocity.y=0.f;}
-		}
+			move=true;
+		} 
+
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
+			velocity.y=std::max(velocity.y-acceleration*mult*dt,-top_speed);
+			move=true;
+		} 
+		if (!move){velocity.y-=velocity.y*speed_loss*dt*lossmult;}	
+			
+		if (!move and abs(velocity.y)<0.1f){velocity.y=0.f;}
 	};
+
+	void checkpoint_colliion(std::vector<Checkpoint>& checkpoints){
+		for (int i=0;i<checkpoints.size();i++){
+			if (sprite.getGlobalBounds().findIntersection(checkpoints[i].sprite.getGlobalBounds())){
+				checkpoints[i].activate();
+				current_checkpoint=checkpoints[i].sprite.getPosition();
+			}
+		}
+	}
 
 };
 
@@ -219,7 +260,7 @@ struct Camera{
 	}
 };
 
-void LoadLevel(Player& player,std::vector<Wall>& walls, int level_number){
+void LoadLevel(Player& player,std::vector<Wall>& walls, int level_number,std::vector<Checkpoint>& checkpoints){
 	std::string level_load_string="assets/levels/";
 	level_load_string+=(std::to_string(level_number));
 	level_load_string+=(".txt");
@@ -253,8 +294,13 @@ void LoadLevel(Player& player,std::vector<Wall>& walls, int level_number){
 				walls.push_back(wall);
 				}
 			}
-			
-			
+		}
+		if (type=="checkpoint"){
+			file>>x>>y;
+			Checkpoint checkpoint;
+			checkpoint.setup({x*64,y*64});
+			checkpoints.push_back(checkpoint);
+
 		}
 	}
 }
@@ -300,14 +346,15 @@ void mouse_block_placing(sf::RenderWindow& window,std::vector<Wall>& walls,std::
 	}	
 }
 
-void Debugging(Player& player,std::vector<Wall>& walls, Camera& camera, float dt, sf::RenderWindow& window, Input& input,std::vector<std::string>& new_walls){
+void Debugging(Player& player,std::vector<Wall>& walls, Camera& camera, float dt, sf::RenderWindow& window, Input& input,
+	std::vector<std::string>& new_walls,std::vector<Checkpoint>& checkpoints){
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F1)){DEBUGGING_LEVELS_AND_BUILDING_THEM=true;}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F2)){DEBUGGING_LEVELS_AND_BUILDING_THEM=false;}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)){LoadLevel(player,walls,1);camera.setup();new_walls.clear();}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)){LoadLevel(player,walls,1,checkpoints);camera.setup();new_walls.clear();}
 	if (DEBUGGING_LEVELS_AND_BUILDING_THEM){
 		player.debug_movement(dt);
-		mouse_block_placing(window,walls,new_walls,input,player);
 	}
+	if (CHEAT_MODE){mouse_block_placing(window,walls,new_walls,input,player);}
 	
 }
 
@@ -321,6 +368,12 @@ void draw_walls(std::vector<Wall>& walls,sf::RenderWindow& window){
 	}
 }
 
+void draw_checkpoints(std::vector<Checkpoint>& checkpoints,sf::RenderWindow& window){
+	for (int i=0;i<checkpoints.size();i++){
+		window.draw(checkpoints[i].sprite);
+	}
+}
+
 int main()
 {
 	sf::RenderWindow window( sf::VideoMode( { 1920, 1080 } ), "SFML works!",sf::State::Fullscreen);
@@ -329,6 +382,7 @@ int main()
 	Input input;
 	Player player;
 	std::vector<Wall> walls;
+	std::vector<Checkpoint> checkpoints;
 	Camera camera;
 	camera.setup();
 	std::vector<std::string> new_walls;
@@ -336,7 +390,7 @@ int main()
 	sf::Clock delta_clock;
 	sf::Time delta_time(sf::milliseconds(1000/60));
 	float dt;
-	LoadLevel(player,walls,1);
+	LoadLevel(player,walls,1,checkpoints);
 
 	while (window.isOpen())
 	{
@@ -346,13 +400,13 @@ int main()
 			input.read(event);
 		}
 
-		Debugging(player,walls,camera,dt,window,input,new_walls);
+		if (CHEAT_MODE){Debugging(player,walls,camera,dt,window,input,new_walls,checkpoints);}
 
 		dt=delta_clock.getElapsedTime()/delta_time;
 		delta_clock.restart();
 		if (dt>5){dt=5;}
-		player.sideways_movement(dt);
-		player.jumpIfPossible();
+		player.sideways_movement(dt,input);
+		player.jumpIfPossible(input);
 		player.gravity(dt);
 		player.sprite.move({player.velocity.x*dt,0.f});
 		if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){player.wall_collision_x(walls,dt);}
@@ -364,6 +418,7 @@ int main()
 		window.clear();
 		window.setView(camera.view);
 		draw_walls(walls,window);
+		draw_checkpoints(checkpoints,window);
 		draw_player(player,window);
 		window.display();
 		//sf::sleep(sf::milliseconds(200));
