@@ -8,7 +8,7 @@
 
 
 bool DEBUGGING_LEVELS_AND_BUILDING_THEM=false;
-bool CHEAT_MODE=true;
+bool CHEAT_MODE=false;
 
 struct Input{
 	bool M;
@@ -390,9 +390,27 @@ void draw_walls(std::vector<Wall>& walls,sf::RenderWindow& window){
 	}
 }
 
-void draw_checkpoints(std::vector<Checkpoint>& checkpoints,sf::RenderWindow& window){
+void draw_checkpoints(std::vector<Checkpoint>& checkpoints,sf::RenderWindow& window, Player& player,Camera& camera){
+	sf::RectangleShape bar;
+	bar.setPosition({10,1070});
+	bar.setFillColor(sf::Color(0,255,0,255));
+	bar.setSize({(50.f-float(player.checkpoint_countdown))*5.f,64.f});
+	bar.setRotation(sf::degrees(-90));
+	sf::RectangleShape bar2;
+	bar2.setPosition({10,1070});
+	bar2.setFillColor(sf::Color(0,0,0,0));
+	bar2.setOutlineThickness(10.f);
+	bar2.setOutlineColor(sf::Color(0,255,0,255));
+	bar2.setSize({47.f*5.f,64.f});
+	bar2.setRotation(sf::degrees(-90));
 	for (int i=0;i<checkpoints.size();i++){
 		window.draw(checkpoints[i].sprite);
+	}
+	if (player.checkpoint_countdown<50){
+	window.setView(window.getDefaultView());
+	window.draw(bar);
+	window.draw(bar2);
+	window.setView(camera.view);
 	}
 }
 
@@ -403,6 +421,7 @@ int main()
 	global_assets.LoadAllTextures();
 	Input input;
 	Player player;
+	player.current_level=2;
 	std::vector<Wall> walls;
 	std::vector<Checkpoint> checkpoints;
 	Camera camera;
@@ -443,8 +462,8 @@ int main()
 		window.clear();
 		window.setView(camera.view);
 		draw_walls(walls,window);
-		draw_checkpoints(checkpoints,window);
 		draw_player(player,window);
+		draw_checkpoints(checkpoints,window,player,camera);	
 		window.display();
 		//sf::sleep(sf::milliseconds(200));
 	}
