@@ -61,15 +61,13 @@ struct Assets{
 	sf::Texture wall_texture;
 	sf::Texture finish_texture;
 	sf::Texture checkpoint_texture1;
-	sf::Texture checkpoint_texture2;
 	sf::Texture sky_texture;
 	void LoadAllTextures(){
-	//	if (!font.openFromFile("assets/fonts/arial.ttf")){}
+		//if (!font.openFromFile("assets/fonts/arial.ttf")){}
 		if (!player_texture.loadFromFile("assets/textures/PlayerTexture.png")){}
 		if (!wall_texture.loadFromFile("assets/textures/WallTexture.png")){}
 		if (!finish_texture.loadFromFile("assets/textures/FinishTexture.png")){}
-		if (!checkpoint_texture1.loadFromFile("assets/textures/FinishTexture.png")){}
-		if (!checkpoint_texture2.loadFromFile("assets/textures/FinishTexture.png")){}
+		if (!checkpoint_texture1.loadFromFile("assets/textures/CheckpointTexture.png")){}
 	}
 };
 
@@ -78,6 +76,7 @@ Assets global_assets;
 struct Wall{
 	sf::Vector2f size=sf::Vector2f(global_assets.wall_texture.getSize());
 	sf::Sprite sprite{global_assets.wall_texture};
+	std::string type="wall"; //wall bouncy spike glue
 
 	void setup(sf::Vector2f setup_coords){
 		sprite.setPosition(setup_coords);
@@ -94,7 +93,8 @@ struct Checkpoint{
 	}
 
 	void activate(){
-		sprite.setTexture(global_assets.checkpoint_texture2);
+		sf::Angle angle=sf::degrees(-90);
+		sprite.setRotation(angle);
 		activated=true;
 	}
 
@@ -109,12 +109,15 @@ struct Player{
 	bool is_touching_up=false;
 	bool is_touching_left=false;
 	bool is_touching_right=false;
+	int checkpoint_countdown=50;
+	int current_level=1;
+	std::string state="playing";
 
 	void setup(sf::Vector2f setup_coords){
 		sprite.setPosition(setup_coords);
 		current_checkpoint=setup_coords;
 		velocity={0.f,0.f};
-		current_checkpoint={0.f,0.f};
+		current_checkpoint=setup_coords;
 	}
 	
 	void wall_collision_x(std::vector<Wall>& walls,float dt){
@@ -134,7 +137,10 @@ struct Player{
 					sprite.move({walls[i].sprite.getPosition().x-sprite.getPosition().x+size.x,0.f});
 				}	
 				//velocity.x=-velocity.x;
-				velocity.x=0;
+				if (walls[i].type=="bouncy"){
+					if (velocity.y>1){velocity.x*=-1;} else {velocity.x=0;}
+				}
+				if (walls[i].type=="wall"){velocity.x=0;}
 			}
 		}
 	}
@@ -152,13 +158,17 @@ struct Player{
 					sprite.move({0.f,walls[i].sprite.getPosition().y-sprite.getPosition().y+size.y});
 				}	
 				//velocity.y=-velocity.y;
-				velocity.y=0;
+				if (walls[i].type=="bouncy"){
+					if (velocity.y>1){velocity.y*=-1.f;} else {velocity.y=0;}
+					
+				}
+				if (walls[i].type=="wall"){velocity.y=0;}
 			}
 		}
 	}
 
 	void gravity(float dt){
-		if (!is_touching_down and !DEBUGGING_LEVELS_AND_BUILDING_THEM){
+		if (!is_touching_down & !DEBUGGING_LEVELS_AND_BUILDING_THEM){
 			velocity.y+=0.5*dt;
 		}
 	}
@@ -192,7 +202,7 @@ struct Player{
 		} 
 		if (!move){velocity.x-=velocity.x*speed_loss*dt*lossmult;}	
 			
-		if (!move and abs(velocity.x)<0.1f){velocity.x=0.f;}
+		if (!move && abs(velocity.x)<0.1f){velocity.x=0.f;}
 	}
 
 	void debug_movement(float dt){
@@ -217,7 +227,7 @@ struct Player{
 		} 
 		if (!move){velocity.y-=velocity.y*speed_loss*dt*lossmult;}	
 			
-		if (!move and abs(velocity.y)<0.1f){velocity.y=0.f;}
+		if (!move && abs(velocity.y)<0.1f){velocity.y=0.f;}
 	};
 
 	void checkpoint_colliion(std::vector<Checkpoint>& checkpoints){
@@ -226,6 +236,16 @@ struct Player{
 				checkpoints[i].activate();
 				current_checkpoint=checkpoints[i].sprite.getPosition();
 			}
+		}
+	}
+
+	void respawn_player(){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F)){
+			checkpoint_countdown--;
+		} else {checkpoint_countdown=50;}
+		if (checkpoint_countdown==1){
+			checkpoint_countdown=50;
+			sprite.setPosition(current_checkpoint);
 		}
 	}
 
@@ -243,26 +263,28 @@ struct Camera{
 	void follow_player(Player& player){
 		static float boundry_x=100;
 		static float boundry_y=200;
+		boundry_x=50;boundry_y=50;
+		static float boundry_speed=0.05;
 		sf::Vector2f player_pos=player.sprite.getPosition();
 		sf::Vector2f camera_pos=view.getCenter();
 		if (player_pos.y-camera_pos.y<-boundry_y){
-			view.move({0.f,player_pos.y-camera_pos.y+boundry_y});
+			view.move({0.f,(player_pos.y-camera_pos.y+boundry_y)*boundry_speed});
 		}
 		if (player_pos.y-camera_pos.y>boundry_y){
-			view.move({0.f,player_pos.y-camera_pos.y-boundry_y});
+			view.move({0.f,(player_pos.y-camera_pos.y-boundry_y)*boundry_speed});
 		}
 		if (player_pos.x-camera_pos.x<-boundry_x){
-			view.move({player_pos.x-camera_pos.x+boundry_x,0.f});
+			view.move({(player_pos.x-camera_pos.x+boundry_x)*boundry_speed,0.f});
 		}
 		if (player_pos.x-camera_pos.x>boundry_x){
-			view.move({player_pos.x-camera_pos.x-boundry_x,0.f});
+			view.move({(player_pos.x-camera_pos.x-boundry_x)*boundry_speed,0.f});
 		}
 	}
 };
 
-void LoadLevel(Player& player,std::vector<Wall>& walls, int level_number,std::vector<Checkpoint>& checkpoints){
+void LoadLevel(Player& player,std::vector<Wall>& walls,std::vector<Checkpoint>& checkpoints){
 	std::string level_load_string="assets/levels/";
-	level_load_string+=(std::to_string(level_number));
+	level_load_string+=(std::to_string(player.current_level));
 	level_load_string+=(".txt");
 	std::ifstream file(level_load_string);
 	std::string type;
@@ -322,7 +344,7 @@ void mouse_block_placing(sf::RenderWindow& window,std::vector<Wall>& walls,std::
 	if (input.Mouse1){
 		bool block_is_there=false;
 		for (int i=0;i<walls.size();i++){
-			if (int(walls[i].sprite.getPosition().x/64)==cordx and int(walls[i].sprite.getPosition().y/64)==cordy){
+			if (int(walls[i].sprite.getPosition().x/64)==cordx && int(walls[i].sprite.getPosition().y/64)==cordy){
 				block_is_there=true;break;
 			}
 		}
@@ -350,7 +372,7 @@ void Debugging(Player& player,std::vector<Wall>& walls, Camera& camera, float dt
 	std::vector<std::string>& new_walls,std::vector<Checkpoint>& checkpoints){
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F1)){DEBUGGING_LEVELS_AND_BUILDING_THEM=true;}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F2)){DEBUGGING_LEVELS_AND_BUILDING_THEM=false;}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)){LoadLevel(player,walls,1,checkpoints);camera.setup();new_walls.clear();}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::PageUp)){LoadLevel(player,walls,checkpoints);camera.setup();new_walls.clear();}
 	if (DEBUGGING_LEVELS_AND_BUILDING_THEM){
 		player.debug_movement(dt);
 	}
@@ -390,7 +412,7 @@ int main()
 	sf::Clock delta_clock;
 	sf::Time delta_time(sf::milliseconds(1000/60));
 	float dt;
-	LoadLevel(player,walls,1,checkpoints);
+	LoadLevel(player,walls,checkpoints);
 
 	while (window.isOpen())
 	{
@@ -400,11 +422,14 @@ int main()
 			input.read(event);
 		}
 
-		if (CHEAT_MODE){Debugging(player,walls,camera,dt,window,input,new_walls,checkpoints);}
-
 		dt=delta_clock.getElapsedTime()/delta_time;
 		delta_clock.restart();
 		if (dt>5){dt=5;}
+
+		if (CHEAT_MODE){Debugging(player,walls,camera,dt,window,input,new_walls,checkpoints);}
+
+		player.checkpoint_colliion(checkpoints);
+		player.respawn_player();
 		player.sideways_movement(dt,input);
 		player.jumpIfPossible(input);
 		player.gravity(dt);
