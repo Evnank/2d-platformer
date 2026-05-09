@@ -78,8 +78,18 @@ struct Assets{
 		if (!sky_texture.loadFromFile("../../assets/textures/SkyTexture.png")){}
 	}
 };
-
 Assets global_assets;
+
+struct Finish;
+struct Wall;
+struct Checkpoint;
+struct Player;
+struct Camera;
+struct Sky;
+struct WinScreen;
+struct TheWholeLevel;
+
+
 
 struct Finish{
 	sf::Vector2f size=sf::Vector2f(global_assets.finish_texture.getSize());
@@ -311,41 +321,33 @@ struct Camera{
 	}
 };
 
-struct WorldSize{
-	float left=0;
-	float right=0;
-	float top=0;
-	float bottom=0;
-	void setup(float x,float y){
-		left=x;
-		right=x;
-		top=y;
-		bottom=y;
-	}
-
-	void change(float x,float y){
-		right=std::max(right,x);
-		bottom=std::max(bottom,y);
-		left=std::min(right,x);
-		top=std::min(bottom,y);
-	}
-
-};
-WorldSize true_world_size_in_blocks;
 struct Sky{
 	sf::Vector2f size=sf::Vector2f(global_assets.sky_texture.getSize());	
 	sf::Sprite sprite{global_assets.sky_texture};
 	float scalex=6;
 	float scaley=6;
 	void draw(sf::RenderWindow& window,Camera& camera,Player& player,float dt){
-		std::cout<<true_world_size_in_blocks.left<<'\n';
-		sprite.setPosition({true_world_size_in_blocks.left*64,true_world_size_in_blocks.top*64});
-		scalex=((true_world_size_in_blocks.right*64+1000)-(true_world_size_in_blocks.left*64-1000))/320.f;
-		scaley=((true_world_size_in_blocks.bottom*64+1000)-(true_world_size_in_blocks.top*64-1000))/180.f;
-		window.setView(camera.view);
+		window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+		//std::cout<<true_world_size_in_blocks.left<<'\n';
+		sprite.setPosition({0,0});
+		//sprite.setPosition({true_world_size_in_blocks.left*64,true_world_size_in_blocks.top*64});
+		//scalex=((true_world_size_in_blocks.right*64+1000)-(true_world_size_in_blocks.left*64-1000))/320.f;
+		//scaley=((true_world_size_in_blocks.bottom*64+1000)-(true_world_size_in_blocks.top*64-1000))/180.f;
 		sprite.setScale({scalex,scaley});
 		window.draw(sprite);
+		window.setView(camera.view);
 	}
+};
+
+struct WinScreen{
+	sf::Vector2f size=sf::Vector2f(global_assets.Win0_texture.getSize());
+	sf::Sprite sprite{global_assets.Win0_texture};
+	int state=0;
+	sf::Vector2f coords=sf::Vector2f({600,200});
+	float scale=5;
+
+	void checkmouse(sf::RenderWindow& window, Player& player, Input& input,std::vector<Wall>& walls,std::vector<Checkpoint>& checkpoints);
+	void draw(sf::RenderWindow& window);
 };
 
 struct TheWholeLevel{
@@ -412,57 +414,8 @@ void LoadLevel(Player& player,std::vector<Wall>& walls,std::vector<Checkpoint>& 
 			file>>x>>y;
 			player.finish.setup({x*64,y*64});
 		}
-
-		true_world_size_in_blocks.change(x,y);
 	}
 }
-
-struct WinScreen{
-	sf::Vector2f size=sf::Vector2f(global_assets.Win0_texture.getSize());
-	sf::Sprite sprite{global_assets.Win0_texture};
-	int state=0;
-	sf::Vector2f coords=sf::Vector2f({600,200});
-	float scale=5;
-
-	void checkmouse(sf::RenderWindow& window, Player& player, Input& input,std::vector<Wall>& walls,std::vector<Checkpoint>& checkpoints){
-		sf::FloatRect button1({coords.x+24*scale,coords.y+24*scale},{79*scale,15*scale});
-		sf::FloatRect button2({coords.x+24*scale,coords.y+48*scale},{79*scale,15*scale});
-		sf::FloatRect button3({coords.x+24*scale,coords.y+72*scale},{79*scale,15*scale});
-		sf::Vector2i mouse_coords;
-		mouse_coords=sf::Mouse::getPosition(window);
-		sf::Vector2f mouse_true_coords=window.mapPixelToCoords(mouse_coords);
-		//mouse_true_coords=sf::Vector2f(mouse_coords);
-		if (button1.contains(mouse_true_coords)){
-			sprite.setTexture(global_assets.Win1_texture);
-			if (input.Mouse1){
-				player.current_level++;
-				if (player.current_level>3){player.current_level=1;}
-				player.gamestate="playing";
-				LoadLevel(player,walls,checkpoints);
-			}
-		} else {
-			if (button2.contains(mouse_true_coords)){
-				sprite.setTexture(global_assets.Win2_texture);				
-			} else {
-				if (button3.contains(mouse_true_coords)){
-					sprite.setTexture(global_assets.Win3_texture);
-					if (input.Mouse1){
-						player.gamestate="playing";
-						LoadLevel(player,walls,checkpoints);
-					}
-				} else {
-					sprite.setTexture(global_assets.Win0_texture);
-				}
-			}
-		}
-	}
-	void draw(sf::RenderWindow& window){
-		window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
-		sprite.setPosition({coords.x,coords.y});
-		sprite.setScale({scale,scale});
-		window.draw(sprite);
-	}
-};
 
 void mouse_block_placing(sf::RenderWindow& window,std::vector<Wall>& walls,std::vector<std::string>& new_walls,Input& input,Player& player){
 	std::string new_wall="wall ";
@@ -554,6 +507,7 @@ void draw_checkpoints(std::vector<Checkpoint>& checkpoints,sf::RenderWindow& win
 
 int main()
 {
+	TheWholeLevel the_whole_level;
 	sf::RenderWindow window( sf::VideoMode( { 1920, 1080 } ), "SFML works!",sf::State::Fullscreen);
 	window.setVerticalSyncEnabled(true);
 	global_assets.LoadAllTextures();
@@ -628,3 +582,43 @@ int main()
 		//sf::sleep(sf::milliseconds(200));
 	}
 }
+
+void WinScreen::checkmouse(sf::RenderWindow& window, Player& player, Input& input,std::vector<Wall>& walls,std::vector<Checkpoint>& checkpoints){
+		sf::FloatRect button1({coords.x+24*scale,coords.y+24*scale},{79*scale,15*scale});
+		sf::FloatRect button2({coords.x+24*scale,coords.y+48*scale},{79*scale,15*scale});
+		sf::FloatRect button3({coords.x+24*scale,coords.y+72*scale},{79*scale,15*scale});
+		sf::Vector2i mouse_coords;
+		mouse_coords=sf::Mouse::getPosition(window);
+		sf::Vector2f mouse_true_coords=window.mapPixelToCoords(mouse_coords);
+		//mouse_true_coords=sf::Vector2f(mouse_coords);
+		if (button1.contains(mouse_true_coords)){
+			sprite.setTexture(global_assets.Win1_texture);
+			if (input.Mouse1){
+				player.current_level++;
+				if (player.current_level>3){player.current_level=1;}
+				player.gamestate="playing";
+				LoadLevel(player,walls,checkpoints);
+			}
+		} else {
+			if (button2.contains(mouse_true_coords)){
+				sprite.setTexture(global_assets.Win2_texture);				
+			} else {
+				if (button3.contains(mouse_true_coords)){
+					sprite.setTexture(global_assets.Win3_texture);
+					if (input.Mouse1){
+						player.gamestate="playing";
+						LoadLevel(player,walls,checkpoints);
+					}
+				} else {
+					sprite.setTexture(global_assets.Win0_texture);
+				}
+			}
+		}
+	}
+
+void WinScreen::draw(sf::RenderWindow& window){
+		window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+		sprite.setPosition({coords.x,coords.y});
+		sprite.setScale({scale,scale});
+		window.draw(sprite);
+	}
