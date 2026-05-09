@@ -75,6 +75,7 @@ struct Assets{
 		if (!Win1_texture.loadFromFile("../../assets/textures/Win1.png")){}
 		if (!Win2_texture.loadFromFile("../../assets/textures/Win2.png")){}
 		if (!Win3_texture.loadFromFile("../../assets/textures/Win3.png")){}
+		if (!sky_texture.loadFromFile("../../assets/textures/SkyTexture.png")){}
 	}
 };
 
@@ -279,44 +280,6 @@ struct Player{
 
 };
 
-struct WinScreen{
-	sf::Vector2f size=sf::Vector2f(global_assets.Win0_texture.getSize());
-	sf::Sprite sprite{global_assets.Win0_texture};
-	int state=0;
-	sf::Vector2f coords=sf::Vector2f({600,200});
-	float scale=5;
-
-	void checkmouse(sf::RenderWindow& window, Player& player, Input& input){
-		sf::FloatRect button1({coords.x+24*scale,coords.y+24*scale},{79*scale,15*scale});
-		sf::FloatRect button2({coords.x+24*scale,coords.y+48*scale},{79*scale,15*scale});
-		sf::FloatRect button3({coords.x+24*scale,coords.y+72*scale},{79*scale,15*scale});
-		sf::Vector2i mouse_coords;
-		mouse_coords=sf::Mouse::getPosition(window);
-		sf::Vector2f mouse_true_coords=window.mapPixelToCoords(mouse_coords);
-		//mouse_true_coords=sf::Vector2f(mouse_coords);
-		if (button1.contains(mouse_true_coords)){
-			sprite.setTexture(global_assets.Win1_texture);
-		} else {
-			if (button2.contains(mouse_true_coords)){
-				sprite.setTexture(global_assets.Win2_texture);
-			} else {
-				if (button3.contains(mouse_true_coords)){
-					sprite.setTexture(global_assets.Win3_texture);
-				} else {
-					sprite.setTexture(global_assets.Win0_texture);
-				}
-			}
-		}
-	}
-
-	void draw(sf::RenderWindow& window){
-		window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
-		sprite.setPosition({coords.x,coords.y});
-		sprite.setScale({scale,scale});
-		window.draw(sprite);
-	}
-};
-
 struct Camera{
 	sf::View view;
 
@@ -348,6 +311,60 @@ struct Camera{
 	}
 };
 
+struct WorldSize{
+	float left=0;
+	float right=0;
+	float top=0;
+	float bottom=0;
+	void setup(float x,float y){
+		left=x;
+		right=x;
+		top=y;
+		bottom=y;
+	}
+
+	void change(float x,float y){
+		right=std::max(right,x);
+		bottom=std::max(bottom,y);
+		left=std::min(right,x);
+		top=std::min(bottom,y);
+	}
+
+};
+WorldSize true_world_size_in_blocks;
+struct Sky{
+	sf::Vector2f size=sf::Vector2f(global_assets.sky_texture.getSize());	
+	sf::Sprite sprite{global_assets.sky_texture};
+	float scalex=6;
+	float scaley=6;
+	void draw(sf::RenderWindow& window,Camera& camera,Player& player,float dt){
+		std::cout<<true_world_size_in_blocks.left<<'\n';
+		sprite.setPosition({true_world_size_in_blocks.left*64,true_world_size_in_blocks.top*64});
+		scalex=((true_world_size_in_blocks.right*64+1000)-(true_world_size_in_blocks.left*64-1000))/320.f;
+		scaley=((true_world_size_in_blocks.bottom*64+1000)-(true_world_size_in_blocks.top*64-1000))/180.f;
+		window.setView(camera.view);
+		sprite.setScale({scalex,scaley});
+		window.draw(sprite);
+	}
+};
+
+struct TheWholeLevel{
+	sf::RenderWindow window;
+	Input input;
+	Player player;
+	std::vector<Wall> walls;
+	std::vector<Checkpoint> checkpoints;
+	Camera camera;
+	std::vector<std::string> new_walls;
+	Sky sky;
+
+	void setup(){
+		window=sf::RenderWindow(sf::VideoMode( { 1920, 1080 } ), "SFML works!",sf::State::Fullscreen);
+		camera.setup();
+		player.current_level=2;
+	}
+};
+
 void LoadLevel(Player& player,std::vector<Wall>& walls,std::vector<Checkpoint>& checkpoints){
 	std::string level_load_string="../../assets/levels/";
 	level_load_string+=(std::to_string(player.current_level));
@@ -358,6 +375,7 @@ void LoadLevel(Player& player,std::vector<Wall>& walls,std::vector<Checkpoint>& 
 	checkpoints.clear();
 	float x,y,l;
 	static Wall wall;
+
 	while (file>>type){
 		if (type=="player"){
 			file>>x>>y;
@@ -394,8 +412,57 @@ void LoadLevel(Player& player,std::vector<Wall>& walls,std::vector<Checkpoint>& 
 			file>>x>>y;
 			player.finish.setup({x*64,y*64});
 		}
+
+		true_world_size_in_blocks.change(x,y);
 	}
 }
+
+struct WinScreen{
+	sf::Vector2f size=sf::Vector2f(global_assets.Win0_texture.getSize());
+	sf::Sprite sprite{global_assets.Win0_texture};
+	int state=0;
+	sf::Vector2f coords=sf::Vector2f({600,200});
+	float scale=5;
+
+	void checkmouse(sf::RenderWindow& window, Player& player, Input& input,std::vector<Wall>& walls,std::vector<Checkpoint>& checkpoints){
+		sf::FloatRect button1({coords.x+24*scale,coords.y+24*scale},{79*scale,15*scale});
+		sf::FloatRect button2({coords.x+24*scale,coords.y+48*scale},{79*scale,15*scale});
+		sf::FloatRect button3({coords.x+24*scale,coords.y+72*scale},{79*scale,15*scale});
+		sf::Vector2i mouse_coords;
+		mouse_coords=sf::Mouse::getPosition(window);
+		sf::Vector2f mouse_true_coords=window.mapPixelToCoords(mouse_coords);
+		//mouse_true_coords=sf::Vector2f(mouse_coords);
+		if (button1.contains(mouse_true_coords)){
+			sprite.setTexture(global_assets.Win1_texture);
+			if (input.Mouse1){
+				player.current_level++;
+				if (player.current_level>3){player.current_level=1;}
+				player.gamestate="playing";
+				LoadLevel(player,walls,checkpoints);
+			}
+		} else {
+			if (button2.contains(mouse_true_coords)){
+				sprite.setTexture(global_assets.Win2_texture);				
+			} else {
+				if (button3.contains(mouse_true_coords)){
+					sprite.setTexture(global_assets.Win3_texture);
+					if (input.Mouse1){
+						player.gamestate="playing";
+						LoadLevel(player,walls,checkpoints);
+					}
+				} else {
+					sprite.setTexture(global_assets.Win0_texture);
+				}
+			}
+		}
+	}
+	void draw(sf::RenderWindow& window){
+		window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+		sprite.setPosition({coords.x,coords.y});
+		sprite.setScale({scale,scale});
+		window.draw(sprite);
+	}
+};
 
 void mouse_block_placing(sf::RenderWindow& window,std::vector<Wall>& walls,std::vector<std::string>& new_walls,Input& input,Player& player){
 	std::string new_wall="wall ";
@@ -438,6 +505,7 @@ void mouse_block_placing(sf::RenderWindow& window,std::vector<Wall>& walls,std::
 	}	
 }
 
+
 void Debugging(Player& player,std::vector<Wall>& walls, Camera& camera, float dt, sf::RenderWindow& window, Input& input,
 	std::vector<std::string>& new_walls,std::vector<Checkpoint>& checkpoints){
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F1)){DEBUGGING_LEVELS_AND_BUILDING_THEM=true;}
@@ -447,7 +515,6 @@ void Debugging(Player& player,std::vector<Wall>& walls, Camera& camera, float dt
 		player.debug_movement(dt);
 	}
 	if (CHEAT_MODE){mouse_block_placing(window,walls,new_walls,input,player);}
-	
 }
 
 void draw_player(Player& player,sf::RenderWindow& window){
@@ -499,7 +566,7 @@ int main()
 	camera.setup();
 	std::vector<std::string> new_walls;
 	WinScreen winscreen;
-
+	Sky sky;
 
 	sf::Clock delta_clock;
 	sf::Time delta_time(sf::milliseconds(1000/60));
@@ -542,11 +609,12 @@ int main()
 			}
 		}
 		if (player.gamestate=="win" || player.gamestate=="escape"){
-			winscreen.checkmouse(window,player,input);
+			winscreen.checkmouse(window,player,input,walls,checkpoints);
 		}
 
 		
 		window.clear();
+		sky.draw(window,camera,player,dt);
 		if (player.gamestate=="playing" || player.gamestate=="win" || player.gamestate=="escape"){
 		window.setView(camera.view);
 		draw_walls(walls,window);

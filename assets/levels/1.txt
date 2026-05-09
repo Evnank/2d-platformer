@@ -1,5 +1,6 @@
 player -2 -4
 checkpoint 12 -9
+finish 29 -2
 
 wall 0 0
 wall 1 0
