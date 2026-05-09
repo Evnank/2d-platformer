@@ -66,15 +66,15 @@ struct Assets{
 	sf::Texture Win2_texture;
 	sf::Texture Win3_texture;
 	void LoadAllTextures(){
-		//if (!font.openFromFile("assets/fonts/arial.ttf")){}
-		if (!player_texture.loadFromFile("assets/textures/PlayerTexture.png")){}
-		if (!wall_texture.loadFromFile("assets/textures/WallTexture.png")){}
-		if (!finish_texture.loadFromFile("assets/textures/FinishTexture.png")){}
-		if (!checkpoint_texture1.loadFromFile("assets/textures/CheckpointTexture.png")){}
-		if (!Win0_texture.loadFromFile("assets/textures/Win0.png")){}
-		if (!Win1_texture.loadFromFile("assets/textures/Win1.png")){}
-		if (!Win2_texture.loadFromFile("assets/textures/Win2.png")){}
-		if (!Win3_texture.loadFromFile("assets/textures/Win3.png")){}
+		//if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
+		if (!player_texture.loadFromFile("../../assets/textures/PlayerTexture.png")){}
+		if (!wall_texture.loadFromFile("../../assets/textures/WallTexture.png")){}
+		if (!finish_texture.loadFromFile("../../assets/textures/FinishTexture.png")){}
+		if (!checkpoint_texture1.loadFromFile("../../assets/textures/CheckpointTexture.png")){}
+		if (!Win0_texture.loadFromFile("../../assets/textures/Win0.png")){}
+		if (!Win1_texture.loadFromFile("../../assets/textures/Win1.png")){}
+		if (!Win2_texture.loadFromFile("../../assets/textures/Win2.png")){}
+		if (!Win3_texture.loadFromFile("../../assets/textures/Win3.png")){}
 	}
 };
 
@@ -349,7 +349,7 @@ struct Camera{
 };
 
 void LoadLevel(Player& player,std::vector<Wall>& walls,std::vector<Checkpoint>& checkpoints){
-	std::string level_load_string="assets/levels/";
+	std::string level_load_string="../../assets/levels/";
 	level_load_string+=(std::to_string(player.current_level));
 	level_load_string+=(".txt");
 	std::ifstream file(level_load_string);
