@@ -273,7 +273,7 @@ struct Player{
 
 	void finish_collision(){
 		if (sprite.getGlobalBounds().findIntersection(finish.sprite.getGlobalBounds())){
-			gamestate="win";
+			gamestate="escape";
 		}
 	}
 
@@ -310,7 +310,7 @@ struct WinScreen{
 	}
 
 	void draw(sf::RenderWindow& window){
-		window.setView(window.getDefaultView());
+		window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
 		sprite.setPosition({coords.x,coords.y});
 		sprite.setScale({scale,scale});
 		window.draw(sprite);
@@ -478,7 +478,7 @@ void draw_checkpoints(std::vector<Checkpoint>& checkpoints,sf::RenderWindow& win
 		window.draw(checkpoints[i].sprite);
 	}
 	if (player.checkpoint_countdown<50){
-	window.setView(window.getDefaultView());
+	window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
 	window.draw(bar);
 	window.draw(bar2);
 	window.setView(camera.view);
