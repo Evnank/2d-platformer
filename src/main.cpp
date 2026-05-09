@@ -6,9 +6,8 @@
 #include <fstream>
 #include <algorithm>
 
-
 bool DEBUGGING_LEVELS_AND_BUILDING_THEM=false;
-bool CHEAT_MODE=false;
+bool CHEAT_MODE=true;
 
 struct Input{
 	bool M;
@@ -62,21 +61,37 @@ struct Assets{
 	sf::Texture finish_texture;
 	sf::Texture checkpoint_texture1;
 	sf::Texture sky_texture;
+	sf::Texture Win0_texture;
+	sf::Texture Win1_texture;
+	sf::Texture Win2_texture;
+	sf::Texture Win3_texture;
 	void LoadAllTextures(){
 		//if (!font.openFromFile("assets/fonts/arial.ttf")){}
 		if (!player_texture.loadFromFile("assets/textures/PlayerTexture.png")){}
 		if (!wall_texture.loadFromFile("assets/textures/WallTexture.png")){}
 		if (!finish_texture.loadFromFile("assets/textures/FinishTexture.png")){}
 		if (!checkpoint_texture1.loadFromFile("assets/textures/CheckpointTexture.png")){}
+		if (!Win0_texture.loadFromFile("assets/textures/Win0.png")){}
+		if (!Win1_texture.loadFromFile("assets/textures/Win1.png")){}
+		if (!Win2_texture.loadFromFile("assets/textures/Win2.png")){}
+		if (!Win3_texture.loadFromFile("assets/textures/Win3.png")){}
 	}
 };
 
 Assets global_assets;
 
+struct Finish{
+	sf::Vector2f size=sf::Vector2f(global_assets.finish_texture.getSize());
+	sf::Sprite sprite{global_assets.finish_texture};
+	void setup(sf::Vector2f setup_coords){
+		sprite.setPosition(setup_coords);
+	}
+};
+
 struct Wall{
 	sf::Vector2f size=sf::Vector2f(global_assets.wall_texture.getSize());
 	sf::Sprite sprite{global_assets.wall_texture};
-	std::string type="wall"; //wall bouncy spike glue
+	std::string type="wall"; //wall    bouncy    spike    glue    redwall   bluewall
 
 	void setup(sf::Vector2f setup_coords){
 		sprite.setPosition(setup_coords);
@@ -111,13 +126,16 @@ struct Player{
 	bool is_touching_right=false;
 	int checkpoint_countdown=50;
 	int current_level=1;
-	std::string state="playing";
+	int checkpoint_number=0;
+	std::string gamestate="playing"; //playing   escape  win   menu   level_selector
+	Finish finish;
 
 	void setup(sf::Vector2f setup_coords){
 		sprite.setPosition(setup_coords);
 		current_checkpoint=setup_coords;
 		velocity={0.f,0.f};
 		current_checkpoint=setup_coords;
+		checkpoint_number=0;
 	}
 	
 	void wall_collision_x(std::vector<Wall>& walls,float dt){
@@ -233,22 +251,70 @@ struct Player{
 	void checkpoint_colliion(std::vector<Checkpoint>& checkpoints){
 		for (int i=0;i<checkpoints.size();i++){
 			if (sprite.getGlobalBounds().findIntersection(checkpoints[i].sprite.getGlobalBounds())){
-				checkpoints[i].activate();
-				current_checkpoint=checkpoints[i].sprite.getPosition();
+				if (i>=checkpoint_number){
+					checkpoints[i].activate();
+					current_checkpoint=checkpoints[i].sprite.getPosition();
+					checkpoint_number=i;
+				}		
 			}
+			if (i<checkpoint_number){checkpoints[i].activate();}
 		}
 	}
 
 	void respawn_player(){
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F)){
-			checkpoint_countdown--;
+			checkpoint_countdown-=2;
 		} else {checkpoint_countdown=50;}
-		if (checkpoint_countdown==1){
+		if (checkpoint_countdown<=0){
 			checkpoint_countdown=50;
 			sprite.setPosition(current_checkpoint);
 		}
 	}
 
+	void finish_collision(){
+		if (sprite.getGlobalBounds().findIntersection(finish.sprite.getGlobalBounds())){
+			gamestate="win";
+		}
+	}
+
+};
+
+struct WinScreen{
+	sf::Vector2f size=sf::Vector2f(global_assets.Win0_texture.getSize());
+	sf::Sprite sprite{global_assets.Win0_texture};
+	int state=0;
+	sf::Vector2f coords=sf::Vector2f({600,200});
+	float scale=5;
+
+	void checkmouse(sf::RenderWindow& window, Player& player, Input& input){
+		sf::FloatRect button1({coords.x+24*scale,coords.y+24*scale},{79*scale,15*scale});
+		sf::FloatRect button2({coords.x+24*scale,coords.y+48*scale},{79*scale,15*scale});
+		sf::FloatRect button3({coords.x+24*scale,coords.y+72*scale},{79*scale,15*scale});
+		sf::Vector2i mouse_coords;
+		mouse_coords=sf::Mouse::getPosition(window);
+		sf::Vector2f mouse_true_coords=window.mapPixelToCoords(mouse_coords);
+		//mouse_true_coords=sf::Vector2f(mouse_coords);
+		if (button1.contains(mouse_true_coords)){
+			sprite.setTexture(global_assets.Win1_texture);
+		} else {
+			if (button2.contains(mouse_true_coords)){
+				sprite.setTexture(global_assets.Win2_texture);
+			} else {
+				if (button3.contains(mouse_true_coords)){
+					sprite.setTexture(global_assets.Win3_texture);
+				} else {
+					sprite.setTexture(global_assets.Win0_texture);
+				}
+			}
+		}
+	}
+
+	void draw(sf::RenderWindow& window){
+		window.setView(window.getDefaultView());
+		sprite.setPosition({coords.x,coords.y});
+		sprite.setScale({scale,scale});
+		window.draw(sprite);
+	}
 };
 
 struct Camera{
@@ -289,6 +355,7 @@ void LoadLevel(Player& player,std::vector<Wall>& walls,std::vector<Checkpoint>& 
 	std::ifstream file(level_load_string);
 	std::string type;
 	walls.clear();
+	checkpoints.clear();
 	float x,y,l;
 	static Wall wall;
 	while (file>>type){
@@ -322,7 +389,10 @@ void LoadLevel(Player& player,std::vector<Wall>& walls,std::vector<Checkpoint>& 
 			Checkpoint checkpoint;
 			checkpoint.setup({x*64,y*64});
 			checkpoints.push_back(checkpoint);
-
+		}
+		if (type=="finish"){
+			file>>x>>y;
+			player.finish.setup({x*64,y*64});
 		}
 	}
 }
@@ -382,6 +452,7 @@ void Debugging(Player& player,std::vector<Wall>& walls, Camera& camera, float dt
 
 void draw_player(Player& player,sf::RenderWindow& window){
 	window.draw(player.sprite);
+	window.draw(player.finish.sprite);
 }
 
 void draw_walls(std::vector<Wall>& walls,sf::RenderWindow& window){
@@ -427,6 +498,8 @@ int main()
 	Camera camera;
 	camera.setup();
 	std::vector<std::string> new_walls;
+	WinScreen winscreen;
+
 
 	sf::Clock delta_clock;
 	sf::Time delta_time(sf::milliseconds(1000/60));
@@ -445,8 +518,9 @@ int main()
 		delta_clock.restart();
 		if (dt>5){dt=5;}
 
+		if (player.gamestate=="playing"){
 		if (CHEAT_MODE){Debugging(player,walls,camera,dt,window,input,new_walls,checkpoints);}
-
+		player.finish_collision();
 		player.checkpoint_colliion(checkpoints);
 		player.respawn_player();
 		player.sideways_movement(dt,input);
@@ -456,14 +530,32 @@ int main()
 		if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){player.wall_collision_x(walls,dt);}
 		player.sprite.move({0.f,player.velocity.y*dt});
 		if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){player.wall_collision_y(walls,dt);}
-		
-
 		camera.follow_player(player);
+		}
+		if (input.Escape){
+			if (player.gamestate=="playing"){
+				player.gamestate="escape";
+			} else {
+				if (player.gamestate=="escape"){
+					player.gamestate="playing";
+				}
+			}
+		}
+		if (player.gamestate=="win" || player.gamestate=="escape"){
+			winscreen.checkmouse(window,player,input);
+		}
+
+		
 		window.clear();
+		if (player.gamestate=="playing" || player.gamestate=="win" || player.gamestate=="escape"){
 		window.setView(camera.view);
 		draw_walls(walls,window);
 		draw_player(player,window);
 		draw_checkpoints(checkpoints,window,player,camera);	
+		}
+		if (player.gamestate=="win" || player.gamestate=="escape"){
+			winscreen.draw(window);
+		}
 		window.display();
 		//sf::sleep(sf::milliseconds(200));
 	}
