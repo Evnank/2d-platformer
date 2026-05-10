@@ -441,4 +441,5 @@ checkpoint 46 1
 checkpoint 38 -10
 checkpoint 24 -20
 checkpoint 48 -15
+checkpoint 20 -31
 checkpoint 40 -35
