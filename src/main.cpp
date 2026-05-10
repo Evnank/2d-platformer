@@ -8,7 +8,7 @@
 #include <optional>
 
 bool DEBUGGING_LEVELS_AND_BUILDING_THEM=false;
-bool CHEAT_MODE=true;
+bool CHEAT_MODE=false;
 
 struct Input{
 	bool M;
@@ -16,17 +16,27 @@ struct Input{
 	bool Mouse1;
 	bool Mouse2;
 	bool F9;
+	bool F1;
+	bool F2;
+	bool R;
 	bool LShift;
 	bool left;
 	bool right;
 	bool down;
 	bool up;
+	bool PageUp;
+	bool F;
 
 	void read(const std::optional<sf::Event>& event){
 		if (const auto* key=event->getIf<sf::Event::KeyPressed>()){
 			if (key->code == sf::Keyboard::Key::M){M=true;}
 			if (key->code == sf::Keyboard::Key::Escape){Escape=true;}
 			if (key->code == sf::Keyboard::Key::F9){F9=true;}
+			if (key->code == sf::Keyboard::Key::F1){F1=true;}
+			if (key->code == sf::Keyboard::Key::F2){F2=true;}
+			if (key->code == sf::Keyboard::Key::F){F=true;}
+			if (key->code == sf::Keyboard::Key::R){R=true;}
+			if (key->code == sf::Keyboard::Key::PageUp){PageUp=true;}
 			if (key->code == sf::Keyboard::Key::LShift){LShift=true;}
 			if (key->code == sf::Keyboard::Key::Left){left=true;}
 			if (key->code == sf::Keyboard::Key::Right){right=true;}
@@ -242,10 +252,10 @@ struct TheWholeLevel{
 
 	void setup(){
 		window.create(sf::VideoMode({1920, 1080}), "SFML works!", sf::State::Fullscreen);
-		//window.setVerticalSyncEnabled(true);
+		window.setVerticalSyncEnabled(true);
 		//window.setFramerateLimit(60);
 		camera.setup();
-		player.current_level=2;
+		player.current_level=1;
 	}
 };
 
@@ -342,9 +352,9 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 
 
 void Debugging(TheWholeLevel& the_whole_level){
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F1)){DEBUGGING_LEVELS_AND_BUILDING_THEM=true;}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F2)){DEBUGGING_LEVELS_AND_BUILDING_THEM=false;}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::PageUp)){LoadLevel(the_whole_level);the_whole_level.camera.setup();the_whole_level.new_walls.clear();}
+	if (the_whole_level.input.F1){DEBUGGING_LEVELS_AND_BUILDING_THEM=true;}
+	if (the_whole_level.input.F2){DEBUGGING_LEVELS_AND_BUILDING_THEM=false;}
+	if (the_whole_level.input.PageUp){LoadLevel(the_whole_level);the_whole_level.camera.setup();the_whole_level.new_walls.clear();}
 	if (DEBUGGING_LEVELS_AND_BUILDING_THEM){
 		the_whole_level.player.debug_movement(the_whole_level);
 	}
@@ -591,12 +601,12 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			mult=2;
 			lossmult=1;
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right)){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || the_whole_level.input.right){
 			velocity.x=std::min(velocity.x+acceleration*mult*the_whole_level.dt,top_speed);
 			move=true;
 		} 
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left)){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || the_whole_level.input.left){
 			velocity.x=std::max(velocity.x-acceleration*mult*the_whole_level.dt,-top_speed);
 			move=true;
 		} 
@@ -616,12 +626,12 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			mult=2;
 			lossmult=1;
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || the_whole_level.input.down){
 			velocity.y=std::min(velocity.y+acceleration*mult*the_whole_level.dt,top_speed);
 			move=true;
 		} 
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || the_whole_level.input.up){
 			velocity.y=std::max(velocity.y-acceleration*mult*the_whole_level.dt,-top_speed);
 			move=true;
 		} 
@@ -644,7 +654,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 	}
 
 	void Player::respawn_player(TheWholeLevel& the_whole_level){
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F)){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) || the_whole_level.input.F){
 			checkpoint_countdown-=2*the_whole_level.dt;
 		} else {checkpoint_countdown=50;}
 		if (checkpoint_countdown<=0){
