@@ -61,6 +61,11 @@ struct Input{
 	 	right=false;
 		down=false;
 		up=false;
+		F=false;
+		F1=false;
+		F2=false;
+		R=false;
+		PageUp=false;
 	}
 
 };
@@ -419,7 +424,7 @@ int main()
 
 		the_whole_level.dt=delta_clock.getElapsedTime()/delta_time;
 		delta_clock.restart();
-		if (the_whole_level.dt>5){the_whole_level.dt=5;}
+		if (the_whole_level.dt>1){the_whole_level.dt=1;}
 	//playing state
 		if (the_whole_level.player.gamestate=="playing"){
 			if (CHEAT_MODE){Debugging(the_whole_level);}
