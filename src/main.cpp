@@ -154,7 +154,7 @@ struct Player{
 	bool is_touching_up=false;
 	bool is_touching_left=false;
 	bool is_touching_right=false;
-	int checkpoint_countdown=50;
+	float checkpoint_countdown=50;
 	int current_level=1;
 	int checkpoint_number=0;
 	std::string gamestate="menu"; //playing   escape  win   menu   level_selector     settings
@@ -186,15 +186,7 @@ struct Player{
 
 	void checkpoint_colliion(TheWholeLevel& the_whole_level);
 
-	void respawn_player(){
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F)){
-			checkpoint_countdown-=2;
-		} else {checkpoint_countdown=50;}
-		if (checkpoint_countdown<=0){
-			checkpoint_countdown=50;
-			sprite.setPosition(current_checkpoint);
-		}
-	}
+	void respawn_player(TheWholeLevel& the_whole_level);
 
 	void finish_collision(){
 		if (sprite.getGlobalBounds().findIntersection(finish.sprite.getGlobalBounds())){
@@ -250,7 +242,8 @@ struct TheWholeLevel{
 
 	void setup(){
 		window.create(sf::VideoMode({1920, 1080}), "SFML works!", sf::State::Fullscreen);
-		window.setVerticalSyncEnabled(true);
+		//window.setVerticalSyncEnabled(true);
+		//window.setFramerateLimit(60);
 		camera.setup();
 		player.current_level=2;
 	}
@@ -365,7 +358,10 @@ void draw_player(TheWholeLevel& the_whole_level){
 
 void draw_walls(TheWholeLevel& the_whole_level){
 	for (int i=0;i<the_whole_level.walls.size();i++){
-		the_whole_level.window.draw(the_whole_level.walls[i].sprite);
+		sf::FloatRect rect{the_whole_level.camera.view.getCenter()-the_whole_level.camera.view.getSize()/2.f,the_whole_level.camera.view.getSize()};
+		if (the_whole_level.walls[i].sprite.getGlobalBounds().findIntersection(rect)){
+			the_whole_level.window.draw(the_whole_level.walls[i].sprite);
+		}
 	}
 }
 
@@ -420,7 +416,7 @@ int main()
 			the_whole_level.player.finish_collision();
 		//respawning
 			the_whole_level.player.checkpoint_colliion(the_whole_level);
-			the_whole_level.player.respawn_player();
+			the_whole_level.player.respawn_player(the_whole_level);
 		//changing velocity
 			the_whole_level.player.sideways_movement(the_whole_level);
 			the_whole_level.player.jumpIfPossible(the_whole_level);
@@ -530,8 +526,9 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		is_touching_left=false;
 		is_touching_up=false;
 		is_touching_down=false;
+		sf::FloatRect player_rect{sprite.getGlobalBounds()};
 		for (int i=0;i<the_whole_level.walls.size();i++){
-			if (sprite.getGlobalBounds().findIntersection(the_whole_level.walls[i].sprite.getGlobalBounds())){
+			if (player_rect.findIntersection(the_whole_level.walls[i].sprite.getGlobalBounds())){
 				if (velocity.x>0){
 					is_touching_right=true;
 					is_touching_left=false;
@@ -546,13 +543,16 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 					if (velocity.y>1){velocity.x*=-1;} else {velocity.x=0;}
 				}
 				if (the_whole_level.walls[i].type=="wall"){velocity.x=0;}
+
+				break;
 			}
 		}
 	}
 
 	void Player::wall_collision_y(TheWholeLevel& the_whole_level){
+		sf::FloatRect player_rect{sprite.getGlobalBounds()};
 		for (int i=0;i<the_whole_level.walls.size();i++){
-			if (sprite.getGlobalBounds().findIntersection(the_whole_level.walls[i].sprite.getGlobalBounds())){
+			if (player_rect.findIntersection(the_whole_level.walls[i].sprite.getGlobalBounds())){
 				if (velocity.y>0){
 					is_touching_down=true;
 					is_touching_up=false;
@@ -568,6 +568,8 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 					
 				}
 				if (the_whole_level.walls[i].type=="wall"){velocity.y=0;}
+
+				break;
 			}
 		}
 	}
@@ -598,7 +600,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			velocity.x=std::max(velocity.x-acceleration*mult*the_whole_level.dt,-top_speed);
 			move=true;
 		} 
-		if (!move){velocity.x-=velocity.x*speed_loss*the_whole_level.dt*lossmult;}	
+		if (!move){velocity.x-=velocity.x*std::min(1.f,speed_loss*the_whole_level.dt*lossmult);}	
 			
 		if (!move && abs(velocity.x)<0.1f){velocity.x=0.f;}
 	}
@@ -623,7 +625,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			velocity.y=std::max(velocity.y-acceleration*mult*the_whole_level.dt,-top_speed);
 			move=true;
 		} 
-		if (!move){velocity.y-=velocity.y*speed_loss*the_whole_level.dt*lossmult;}	
+		if (!move){velocity.y-=velocity.y*std::min(1.f,speed_loss*the_whole_level.dt*lossmult);}	
 			
 		if (!move && abs(velocity.y)<0.1f){velocity.y=0.f;}
 	};
@@ -638,6 +640,16 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 				}		
 			}
 			if (i<checkpoint_number){the_whole_level.checkpoints[i].activate();}
+		}
+	}
+
+	void Player::respawn_player(TheWholeLevel& the_whole_level){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F)){
+			checkpoint_countdown-=2*the_whole_level.dt;
+		} else {checkpoint_countdown=50;}
+		if (checkpoint_countdown<=0){
+			checkpoint_countdown=50;
+			sprite.setPosition(current_checkpoint);
 		}
 	}
 
