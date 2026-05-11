@@ -274,6 +274,7 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 	std::ifstream file(level_load_string);
 	std::string type;
 	the_whole_level.walls.clear();
+	the_whole_level.walls_map.clear();
 	the_whole_level.checkpoints.clear();
 	float x,y,l;
 	static Wall wall;
