@@ -6,9 +6,10 @@
 #include <fstream>
 #include <algorithm>
 #include <optional>
+#include <map>
 
 bool DEBUGGING_LEVELS_AND_BUILDING_THEM=false;
-bool CHEAT_MODE=false;
+bool CHEAT_MODE=true;
 
 struct Input{
 	bool M;
@@ -247,6 +248,8 @@ struct TheWholeLevel{
 	Input input;
 	Player player;
 	std::vector<Wall> walls;
+	//std::map <sf::Vector2i,Wall> walls_map;
+	
 	std::vector<Checkpoint> checkpoints;
 	Camera camera;
 	WinScreen winscreen;
@@ -257,7 +260,7 @@ struct TheWholeLevel{
 
 	void setup(){
 		window.create(sf::VideoMode({1920, 1080}), "SFML works!", sf::State::Fullscreen);
-		window.setVerticalSyncEnabled(true);
+		//window.setVerticalSyncEnabled(true);
 		//window.setFramerateLimit(60);
 		camera.setup();
 		player.current_level=1;
@@ -284,6 +287,7 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 			file>>x>>y;
 			wall.setup({x*64,y*64});
 			the_whole_level.walls.push_back(wall);
+			//the_whole_level.walls_map[{int(x),int(y)}]=wall;
 		}
 		if (type=="wallline"){
 			int plus=1;
@@ -293,11 +297,13 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 				for (int i=0;i<l;i++){
 				wall.setup({(x+i*plus)*64,y*64});
 				the_whole_level.walls.push_back(wall);
+				//the_whole_level.walls_map[{int(x),int(y)}]=wall;
 				}
 			} else {
 				for (int i=0;i<l;i++){
 				wall.setup({x*64,(y+i*plus)*64});
 				the_whole_level.walls.push_back(wall);
+				//the_whole_level.walls_map[{int(x),int(y)}]=wall;
 				}
 			}
 		}
@@ -409,6 +415,13 @@ int main()
 	global_assets.LoadAllTextures();
 	TheWholeLevel the_whole_level;
 	the_whole_level.setup();
+	//the_whole_level.window.setVerticalSyncEnabled(true);
+	bool time_analysis=true;
+	sf::Clock input_clock;
+	sf::Clock physics_clock;
+	sf::Clock walls_draw_clock;
+	sf::Clock draw_clock;
+	float total_update_time=0;
 
 	sf::Clock delta_clock;
 	sf::Time delta_time(sf::milliseconds(1000/60));
@@ -416,15 +429,26 @@ int main()
 
 	while (the_whole_level.window.isOpen())
 	{
+		//std::cout<<the_whole_level.walls.size()<<'\n';
+
+
+			input_clock.start();
 		the_whole_level.input.reset();
 		while (const std::optional event = the_whole_level.window.pollEvent()){
 			if (event->is<sf::Event::Closed>()){the_whole_level.window.close();}
 			the_whole_level.input.read(event);
 		}
+			input_clock.stop();
 
+
+
+			physics_clock.start();
 		the_whole_level.dt=delta_clock.getElapsedTime()/delta_time;
 		delta_clock.restart();
 		if (the_whole_level.dt>1){the_whole_level.dt=1;}
+
+
+
 	//playing state
 		if (the_whole_level.player.gamestate=="playing"){
 			if (CHEAT_MODE){Debugging(the_whole_level);}
@@ -443,6 +467,9 @@ int main()
 			if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){the_whole_level.player.wall_collision_y(the_whole_level);}
 			the_whole_level.camera.follow_player(the_whole_level);
 		}
+
+
+
 	//menu state
 		if (the_whole_level.player.gamestate=="menu"){
 			the_whole_level.menu.checkmouse(the_whole_level);
@@ -457,19 +484,35 @@ int main()
 				}
 			}
 		}
+
+
 	//check winscreen 
 		if (the_whole_level.player.gamestate=="win" || the_whole_level.player.gamestate=="escape"){
 			the_whole_level.winscreen.checkmouse(the_whole_level);
 		}
+			physics_clock.stop();
+
+			draw_clock.start();
+
+
 
 	//DRAWING
 		the_whole_level.window.clear();
 	//inside of the level
 		if (the_whole_level.player.gamestate=="playing" || the_whole_level.player.gamestate=="win" || the_whole_level.player.gamestate=="escape"){
+
 			the_whole_level.sky.draw(the_whole_level);
+
 			the_whole_level.window.setView(the_whole_level.camera.view);
+				draw_clock.stop();
+
+				walls_draw_clock.start();
 			draw_walls(the_whole_level);
+				walls_draw_clock.stop();
+
+				draw_clock.start();
 			draw_player(the_whole_level);
+
 			draw_checkpoints(the_whole_level);	
 		}
 	//escape screen
@@ -481,7 +524,27 @@ int main()
 			the_whole_level.menu.draw(the_whole_level);
 		}
 		the_whole_level.window.display();
-		//sf::sleep(sf::milliseconds(200));
+			draw_clock.stop();
+
+
+
+	//PERFORMANCE CHECK
+			if (time_analysis && the_whole_level.input.R && CHEAT_MODE){
+				std::cout<<"input: "<<input_clock.getElapsedTime().asMilliseconds()<<'\n';
+				std::cout<<"physics: "<<physics_clock.getElapsedTime().asMilliseconds()<<'\n';
+				std::cout<<"draw: "<<draw_clock.getElapsedTime().asMilliseconds()<<'\n';
+				std::cout<<"walls_draw: "<<walls_draw_clock.getElapsedTime().asMilliseconds()<<'\n'<<'\n';
+				total_update_time=0;
+				total_update_time+=input_clock.getElapsedTime().asMilliseconds();
+				total_update_time+=physics_clock.getElapsedTime().asMilliseconds();
+				total_update_time+=draw_clock.getElapsedTime().asMilliseconds();
+				total_update_time+=walls_draw_clock.getElapsedTime().asMilliseconds();
+
+				std::cout<<"input: "<<input_clock.getElapsedTime().asMilliseconds()*100.f/total_update_time<<"%"<<'\n';
+				std::cout<<"physics: "<<physics_clock.getElapsedTime().asMilliseconds()*100/total_update_time<<"%"<<'\n';
+				std::cout<<"draw: "<<draw_clock.getElapsedTime().asMilliseconds()*100/total_update_time<<"%"<<'\n';
+				std::cout<<"walls_draw: "<<walls_draw_clock.getElapsedTime().asMilliseconds()*100/total_update_time<<"%"<<'\n'<<'\n';
+			}
 	}
 }
 
