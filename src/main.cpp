@@ -248,7 +248,7 @@ struct TheWholeLevel{
 	Input input;
 	Player player;
 	std::vector<Wall> walls;
-	//std::map <sf::Vector2i,Wall> walls_map;
+	std::map <std::pair<int,int>,Wall> walls_map;
 	
 	std::vector<Checkpoint> checkpoints;
 	Camera camera;
@@ -287,7 +287,7 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 			file>>x>>y;
 			wall.setup({x*64,y*64});
 			the_whole_level.walls.push_back(wall);
-			//the_whole_level.walls_map[{int(x),int(y)}]=wall;
+			the_whole_level.walls_map[{int(x),int(y)}]=wall;
 		}
 		if (type=="wallline"){
 			int plus=1;
@@ -297,13 +297,13 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 				for (int i=0;i<l;i++){
 				wall.setup({(x+i*plus)*64,y*64});
 				the_whole_level.walls.push_back(wall);
-				//the_whole_level.walls_map[{int(x),int(y)}]=wall;
+				the_whole_level.walls_map[{int(x+i*plus),int(y)}]=wall;
 				}
 			} else {
 				for (int i=0;i<l;i++){
 				wall.setup({x*64,(y+i*plus)*64});
 				the_whole_level.walls.push_back(wall);
-				//the_whole_level.walls_map[{int(x),int(y)}]=wall;
+				the_whole_level.walls_map[{int(x),int(y+i*plus)}]=wall;
 				}
 			}
 		}
@@ -416,6 +416,7 @@ int main()
 	TheWholeLevel the_whole_level;
 	the_whole_level.setup();
 	//the_whole_level.window.setVerticalSyncEnabled(true);
+	//the_whole_level.window.setFramerateLimit(1);
 	bool time_analysis=true;
 	sf::Clock input_clock;
 	sf::Clock physics_clock;
@@ -605,49 +606,61 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		is_touching_up=false;
 		is_touching_down=false;
 		sf::FloatRect player_rect{sprite.getGlobalBounds()};
-		for (int i=0;i<the_whole_level.walls.size();i++){
-			if (player_rect.findIntersection(the_whole_level.walls[i].sprite.getGlobalBounds())){
-				if (velocity.x>0){
-					is_touching_right=true;
-					is_touching_left=false;
-					sprite.move({the_whole_level.walls[i].sprite.getPosition().x-sprite.getPosition().x-size.x,0.f});
-				} else{
-					is_touching_left=true;
-					is_touching_right=false;
-					sprite.move({the_whole_level.walls[i].sprite.getPosition().x-sprite.getPosition().x+size.x,0.f});
-				}	
-				//velocity.x=-velocity.x;
-				if (the_whole_level.walls[i].type=="bouncy"){
-					if (velocity.y>1){velocity.x*=-1;} else {velocity.x=0;}
-				}
-				if (the_whole_level.walls[i].type=="wall"){velocity.x=0;}
+		int xcur=int((sprite.getPosition().x/64.f));
+		int ycur=int((sprite.getPosition().y/64.f));
+		for (int xadd=-1;xadd<=1;xadd++){
+			for (int yadd=-1;yadd<=1;yadd++){
+				if (the_whole_level.walls_map.count({xcur+xadd,ycur+yadd})>0){
+					if (player_rect.findIntersection(the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getGlobalBounds())){
+						if (velocity.x>0){
+							is_touching_right=true;
+							is_touching_left=false;
+							sprite.move({the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().x-sprite.getPosition().x-size.x,0.f});
+						} else{
+							is_touching_left=true;
+							is_touching_right=false;
+							sprite.move({the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().x-sprite.getPosition().x+size.x,0.f});
+						}	
+						//velocity.x=-velocity.x;
+						if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type=="bouncy"){
+							if (velocity.y>1){velocity.x*=-1;} else {velocity.x=0;}
+						}
+						if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type=="wall"){velocity.x=0;}
 
-				break;
+						return;
+					}
+				}
 			}
 		}
 	}
 
 	void Player::wall_collision_y(TheWholeLevel& the_whole_level){
 		sf::FloatRect player_rect{sprite.getGlobalBounds()};
-		for (int i=0;i<the_whole_level.walls.size();i++){
-			if (player_rect.findIntersection(the_whole_level.walls[i].sprite.getGlobalBounds())){
-				if (velocity.y>0){
-					is_touching_down=true;
-					is_touching_up=false;
-					sprite.move({0.f,the_whole_level.walls[i].sprite.getPosition().y-sprite.getPosition().y-size.y});
-				} else{
-					is_touching_up=true;
-					is_touching_down=false;
-					sprite.move({0.f,the_whole_level.walls[i].sprite.getPosition().y-sprite.getPosition().y+size.y});
-				}	
-				//velocity.y=-velocity.y;
-				if (the_whole_level.walls[i].type=="bouncy"){
-					if (velocity.y>1){velocity.y*=-1.f;} else {velocity.y=0;}
+		int xcur=int((sprite.getPosition().x/64.f));
+		int ycur=int((sprite.getPosition().y/64.f));
+		for (int xadd=-1;xadd<=1;xadd++){
+			for (int yadd=-1;yadd<=1;yadd++){
+				if (the_whole_level.walls_map.count({xcur+xadd,ycur+yadd})>0){
+					if (player_rect.findIntersection(the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getGlobalBounds())){
+						if (velocity.y>0){
+							is_touching_down=true;
+							is_touching_up=false;
+							sprite.move({0.f,the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().y-sprite.getPosition().y-size.y});
+						} else{
+							is_touching_up=true;
+							is_touching_down=false;
+							sprite.move({0.f,the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().y-sprite.getPosition().y+size.y});
+						}	
+						//velocity.y=-velocity.y;
+						if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type=="bouncy"){
+							if (velocity.y>1){velocity.y*=-1.f;} else {velocity.y=0;}
 					
-				}
-				if (the_whole_level.walls[i].type=="wall"){velocity.y=0;}
+						}
+						if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type=="wall"){velocity.y=0;}
 
-				break;
+						return;
+					}
+				}
 			}
 		}
 	}
