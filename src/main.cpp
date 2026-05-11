@@ -88,7 +88,7 @@ struct Assets{
 	sf::Texture Menu3_texture;
 	sf::Texture Menu4_texture;
 	void LoadAllTextures(){
-		//if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
+		if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
 		if (!player_texture.loadFromFile("../../assets/textures/PlayerTexture.png")){}
 		if (!wall_texture.loadFromFile("../../assets/textures/WallTexture.png")){}
 		if (!finish_texture.loadFromFile("../../assets/textures/FinishTexture.png")){}
