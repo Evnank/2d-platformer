@@ -10,8 +10,9 @@
 
 bool FLY_MODE=false;
 bool PLACING_BLOCKS=false;
-bool CHEAT_MODE=true;
+bool CHEAT_MODE=false;
 bool VSYNC_TOGGLE=false;
+bool SHOW_FPS=false;
 
 struct Input{
 	bool M;
@@ -138,6 +139,7 @@ struct Button{
 		text.setCharacterSize(char_size);
 		text.setPosition(coords+sf::Vector2f{70.f,64.f});
 		bool_to_change=&new_bool_to_change;
+		*bool_to_change=state;
 	}
 
 	void draw(TheWholeLevel& the_whole_level);
@@ -151,9 +153,20 @@ struct Settings{
 	std::vector <Button> buttons;
 	Button button;
 	void setup(){
-		button.setup("Vsync",{0,0},VSYNC_TOGGLE,50);
+			button.state=true;
+		button.setup("Vsync",{0,0},VSYNC_TOGGLE,50);	
 			buttons.push_back(button);
+
+			button.state=false;
 		button.setup("CHEATS",{320,0},CHEAT_MODE,40);
+			buttons.push_back(button);
+
+			button.state=true;
+		button.setup("SHOW FPS",{640,0},SHOW_FPS,33);
+			buttons.push_back(button);
+
+			button.state=false;
+		button.setup("EDITOR",{960,0},PLACING_BLOCKS,45);
 			buttons.push_back(button);
 
 	}
@@ -396,6 +409,7 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 }
 
 void mouse_block_placing(TheWholeLevel& the_whole_level){
+	the_whole_level.window.setView(the_whole_level.camera.view);
 	std::string new_wall="wall ";
 	sf::Vector2i mouse_coords;
 	mouse_coords=sf::Mouse::getPosition(the_whole_level.window);
@@ -490,6 +504,16 @@ void draw_checkpoints(TheWholeLevel& the_whole_level){
 	the_whole_level.window.draw(bar);
 	the_whole_level.window.draw(bar2);
 	the_whole_level.window.setView(the_whole_level.camera.view);
+	}
+}
+
+void fly_draw(TheWholeLevel& the_whole_level){
+	the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+	static sf::Text text(global_assets.font);
+	text.setString("FLY:  ON");
+	text.setPosition({0,0});
+	if (FLY_MODE){
+		the_whole_level.window.draw(text);
 	}
 }
 
@@ -613,10 +637,11 @@ int main()
 		if (the_whole_level.player.gamestate=="menu"){
 			the_whole_level.menu.draw(the_whole_level);
 		}
-		the_whole_level.clocks.draw_fps(the_whole_level);
+		if (SHOW_FPS){the_whole_level.clocks.draw_fps(the_whole_level);}
 			the_whole_level.clocks.draw_clock.stop();
 		//display
 			the_whole_level.clocks.display_clock.start();
+			fly_draw(the_whole_level);
 		the_whole_level.window.display();
 			the_whole_level.clocks.display_clock.stop();
 
@@ -871,8 +896,9 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		sf::Vector2f mcords=the_whole_level.window.mapPixelToCoords(sf::Mouse::getPosition(the_whole_level.window));
 		if (sprite.getGlobalBounds().contains(mcords)){
 			text.setFillColor(sf::Color(0,0,255,255));
-			if (the_whole_level.input.Mouse1){state=!state;*bool_to_change=state;}
+			if (the_whole_level.input.Mouse1){state=!state;}
 		} else {text.setFillColor(sf::Color(255,255,255,255));}
+			*bool_to_change=state;
 		if (state){
 			sprite.setTexture(global_assets.Button1_texture);
 		} else {sprite.setTexture(global_assets.Button0_texture);}
