@@ -8,8 +8,10 @@
 #include <optional>
 #include <map>
 
-bool DEBUGGING_LEVELS_AND_BUILDING_THEM=false;
+bool FLY_MODE=false;
+bool PLACING_BLOCKS=false;
 bool CHEAT_MODE=true;
+bool VSYNC_TOGGLE=false;
 
 struct Input{
 	bool M;
@@ -87,6 +89,8 @@ struct Assets{
 	sf::Texture Menu2_texture;
 	sf::Texture Menu3_texture;
 	sf::Texture Menu4_texture;
+	sf::Texture Button0_texture;
+	sf::Texture Button1_texture;
 	void LoadAllTextures(){
 		if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
 		if (!player_texture.loadFromFile("../../assets/textures/PlayerTexture.png")){}
@@ -103,6 +107,8 @@ struct Assets{
 		if (!Menu2_texture.loadFromFile("../../assets/textures/Menu2.png")){}
 		if (!Menu3_texture.loadFromFile("../../assets/textures/Menu3.png")){}
 		if (!Menu4_texture.loadFromFile("../../assets/textures/Menu4.png")){}
+		if (!Button0_texture.loadFromFile("../../assets/textures/Button0.png")){}
+		if (!Button1_texture.loadFromFile("../../assets/textures/Button1.png")){}
 	}
 };
 Assets global_assets;
@@ -117,6 +123,45 @@ struct WinScreen;
 struct TheWholeLevel;
 struct Menu;
 struct Clocks;
+struct Button;
+struct Settings;
+
+struct Button{
+	sf::Sprite sprite{global_assets.Button0_texture};
+	bool state=false;
+	sf::Text text{global_assets.font};
+	bool* bool_to_change=nullptr;
+
+	void setup(std::string text_string, sf::Vector2f coords,bool& new_bool_to_change, int char_size){
+		text.setString(text_string);
+		sprite.setPosition(coords);
+		text.setCharacterSize(char_size);
+		text.setPosition(coords+sf::Vector2f{70.f,64.f});
+		bool_to_change=&new_bool_to_change;
+	}
+
+	void draw(TheWholeLevel& the_whole_level);
+
+	void update(TheWholeLevel& the_whole_level); 
+
+};
+
+struct Settings{
+	sf::Sprite sprite{global_assets.Button0_texture};
+	std::vector <Button> buttons;
+	Button button;
+	void setup(){
+		button.setup("Vsync",{0,0},VSYNC_TOGGLE,50);
+			buttons.push_back(button);
+		button.setup("CHEATS",{320,0},CHEAT_MODE,40);
+			buttons.push_back(button);
+
+	}
+
+	void update(TheWholeLevel& the_whole_level);
+
+	void draw(TheWholeLevel& the_whole_level);
+};
 
 struct Clocks{
 	bool time_analysis=true;
@@ -212,7 +257,7 @@ struct Player{
 	void jumpIfPossible(TheWholeLevel& the_whole_level){
 		if (is_touching_down){
 			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
-				if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){velocity.y-=15;}
+				if (!FLY_MODE){velocity.y-=15;}
 			}
 		}
 	}
@@ -270,6 +315,7 @@ struct TheWholeLevel{
 	std::map <std::pair<int,int>,Wall> walls_map;
 	
 	std::vector<Checkpoint> checkpoints;
+	Settings settings;
 	Clocks clocks;
 	Camera camera;
 	WinScreen winscreen;
@@ -284,6 +330,7 @@ struct TheWholeLevel{
 		//window.setFramerateLimit(60);
 		camera.setup();
 		player.current_level=1;
+		settings.setup();
 	}
 };
 
@@ -307,6 +354,13 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 		if (type=="wall"){
 			file>>x>>y;
 			wall.setup({x*64,y*64});
+			the_whole_level.walls.push_back(wall);
+			the_whole_level.walls_map[{int(x),int(y)}]=wall;
+		}
+		if (type=="bouncy"){
+			file>>x>>y;
+			wall.setup({x*64,y*64});
+			wall.type="bouncy";
 			the_whole_level.walls.push_back(wall);
 			the_whole_level.walls_map[{int(x),int(y)}]=wall;
 		}
@@ -388,13 +442,13 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 
 
 void Debugging(TheWholeLevel& the_whole_level){
-	if (the_whole_level.input.F1){DEBUGGING_LEVELS_AND_BUILDING_THEM=true;}
-	if (the_whole_level.input.F2){DEBUGGING_LEVELS_AND_BUILDING_THEM=false;}
+	if (the_whole_level.input.F1){FLY_MODE=true;}
+	if (the_whole_level.input.F2){FLY_MODE=false;}
 	if (the_whole_level.input.PageUp){LoadLevel(the_whole_level);the_whole_level.camera.setup();the_whole_level.new_walls.clear();}
-	if (DEBUGGING_LEVELS_AND_BUILDING_THEM){
+	if (FLY_MODE){
 		the_whole_level.player.debug_movement(the_whole_level);
 	}
-	if (CHEAT_MODE){mouse_block_placing(the_whole_level);}
+	if (PLACING_BLOCKS){mouse_block_placing(the_whole_level);}
 }
 
 void draw_player(TheWholeLevel& the_whole_level){
@@ -488,11 +542,16 @@ int main()
 			the_whole_level.player.gravity(the_whole_level);
 		//moving
 			the_whole_level.player.sprite.move({the_whole_level.player.velocity.x*the_whole_level.dt,0.f});
-			if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){the_whole_level.player.wall_collision_x(the_whole_level);}
+			if (!FLY_MODE){the_whole_level.player.wall_collision_x(the_whole_level);}
 			the_whole_level.player.sprite.move({0.f,the_whole_level.player.velocity.y*the_whole_level.dt});
-			if (!DEBUGGING_LEVELS_AND_BUILDING_THEM){the_whole_level.player.wall_collision_y(the_whole_level);}
+			if (!FLY_MODE){the_whole_level.player.wall_collision_y(the_whole_level);}
 			the_whole_level.camera.follow_player(the_whole_level);
 		}
+	//settings state
+		if (the_whole_level.player.gamestate=="settings"){
+			the_whole_level.settings.update(the_whole_level);
+		}
+		the_whole_level.window.setVerticalSyncEnabled(VSYNC_TOGGLE);
 
 
 
@@ -512,7 +571,7 @@ int main()
 		}
 
 
-	//check winscreen 
+	//check escape
 		if (the_whole_level.player.gamestate=="win" || the_whole_level.player.gamestate=="escape"){
 			the_whole_level.winscreen.checkmouse(the_whole_level);
 		}
@@ -525,10 +584,11 @@ int main()
 	//DRAWING
 		the_whole_level.window.clear();
 	//inside of the level
+		if (the_whole_level.player.gamestate=="playing" || the_whole_level.player.gamestate=="win" || 
+			the_whole_level.player.gamestate=="escape" || the_whole_level.player.gamestate=="settings"){
+				the_whole_level.sky.draw(the_whole_level);
+			}
 		if (the_whole_level.player.gamestate=="playing" || the_whole_level.player.gamestate=="win" || the_whole_level.player.gamestate=="escape"){
-
-			the_whole_level.sky.draw(the_whole_level);
-
 			the_whole_level.window.setView(the_whole_level.camera.view);
 				the_whole_level.clocks.draw_clock.stop();
 
@@ -540,18 +600,22 @@ int main()
 			draw_player(the_whole_level);
 
 			draw_checkpoints(the_whole_level);	
-
-			the_whole_level.clocks.draw_fps(the_whole_level);
 		}
 	//escape screen
 		if (the_whole_level.player.gamestate=="win" || the_whole_level.player.gamestate=="escape"){
 			the_whole_level.winscreen.draw(the_whole_level);
 		}
+	//settings screen
+		if (the_whole_level.player.gamestate=="settings"){
+			the_whole_level.settings.draw(the_whole_level);
+		}
 	//menu screen
 		if (the_whole_level.player.gamestate=="menu"){
 			the_whole_level.menu.draw(the_whole_level);
 		}
+		the_whole_level.clocks.draw_fps(the_whole_level);
 			the_whole_level.clocks.draw_clock.stop();
+		//display
 			the_whole_level.clocks.display_clock.start();
 		the_whole_level.window.display();
 			the_whole_level.clocks.display_clock.stop();
@@ -597,7 +661,6 @@ void Clocks::update(TheWholeLevel& the_whole_level){
 		cur_fps=float(framecounter)/FPS_clock.getElapsedTime().asSeconds();
 		FPS_clock.restart();
 		framecounter=0;
-		std::cout<<cur_fps<<'\n';
 	}
 }
 
@@ -613,13 +676,13 @@ void Clocks::draw_fps(TheWholeLevel& the_whole_level){
 }
 
 void WinScreen::checkmouse(TheWholeLevel& the_whole_level){
+		the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
 		sf::FloatRect button1({coords.x+24*scale,coords.y+24*scale},{79*scale,15*scale});
 		sf::FloatRect button2({coords.x+24*scale,coords.y+48*scale},{79*scale,15*scale});
 		sf::FloatRect button3({coords.x+24*scale,coords.y+72*scale},{79*scale,15*scale});
 		sf::Vector2i mouse_coords;
 		mouse_coords=sf::Mouse::getPosition(the_whole_level.window);
 		sf::Vector2f mouse_true_coords=the_whole_level.window.mapPixelToCoords(mouse_coords);
-		//mouse_true_coords=sf::Vector2f(mouse_coords);
 		if (button1.contains(mouse_true_coords)){
 			sprite.setTexture(global_assets.Win1_texture);
 			if (the_whole_level.input.Mouse1){
@@ -630,6 +693,7 @@ void WinScreen::checkmouse(TheWholeLevel& the_whole_level){
 			}
 		} else {
 			if (button2.contains(mouse_true_coords)){
+				std::cout<<2<<'\n';
 				sprite.setTexture(global_assets.Win2_texture);		
 				if (the_whole_level.input.Mouse1){
 					the_whole_level.player.gamestate="menu";
@@ -677,12 +741,10 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 							is_touching_right=false;
 							sprite.move({the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().x-sprite.getPosition().x+size.x,0.f});
 						}	
-						//velocity.x=-velocity.x;
 						if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type=="bouncy"){
 							if (velocity.y>1){velocity.x*=-1;} else {velocity.x=0;}
 						}
 						if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type=="wall"){velocity.x=0;}
-
 						return;
 					}
 				}
@@ -710,10 +772,8 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 						//velocity.y=-velocity.y;
 						if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type=="bouncy"){
 							if (velocity.y>1){velocity.y*=-1.f;} else {velocity.y=0;}
-					
 						}
 						if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type=="wall"){velocity.y=0;}
-
 						return;
 					}
 				}
@@ -722,7 +782,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 	}
 
 	void Player::gravity(TheWholeLevel& the_whole_level){
-		if (!is_touching_down & !DEBUGGING_LEVELS_AND_BUILDING_THEM){
+		if (!is_touching_down & !FLY_MODE){
 			velocity.y+=0.5*the_whole_level.dt;
 		}
 	}
@@ -800,6 +860,40 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		}
 	}
 
+	void Button::draw(TheWholeLevel& the_whole_level){
+		the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+		the_whole_level.window.draw(sprite);
+		the_whole_level.window.draw(text);
+		the_whole_level.window.setView(the_whole_level.camera.view);
+	}
+
+	void Button::update(TheWholeLevel& the_whole_level){
+		sf::Vector2f mcords=the_whole_level.window.mapPixelToCoords(sf::Mouse::getPosition(the_whole_level.window));
+		if (sprite.getGlobalBounds().contains(mcords)){
+			text.setFillColor(sf::Color(0,0,255,255));
+			if (the_whole_level.input.Mouse1){state=!state;*bool_to_change=state;}
+		} else {text.setFillColor(sf::Color(255,255,255,255));}
+		if (state){
+			sprite.setTexture(global_assets.Button1_texture);
+		} else {sprite.setTexture(global_assets.Button0_texture);}
+	}
+
+	void Settings::update(TheWholeLevel& the_whole_level){
+		the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+		for (auto& button:buttons){
+			button.update(the_whole_level);
+		}
+		if (the_whole_level.player.gamestate=="settings" && the_whole_level.input.Escape && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)){
+			the_whole_level.player.gamestate="menu";
+		}
+	}
+
+	void Settings::draw(TheWholeLevel& the_whole_level){
+		for (auto& button:buttons){
+			button.draw(the_whole_level);
+		}
+	}
+
 	void Camera::follow_player(TheWholeLevel& the_whole_level){
 		static float boundry_x=100;
 		static float boundry_y=200;
@@ -824,17 +918,14 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 
 	void Sky::draw(TheWholeLevel& the_whole_level){
 		the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
-		//std::cout<<true_world_size_in_blocks.left<<'\n';
 		sprite.setPosition({0,0});
-		//sprite.setPosition({true_world_size_in_blocks.left*64,true_world_size_in_blocks.top*64});
-		//scalex=((true_world_size_in_blocks.right*64+1000)-(true_world_size_in_blocks.left*64-1000))/320.f;
-		//scaley=((true_world_size_in_blocks.bottom*64+1000)-(true_world_size_in_blocks.top*64-1000))/180.f;
 		sprite.setScale({scalex,scaley});
 		the_whole_level.window.draw(sprite);
 		the_whole_level.window.setView(the_whole_level.camera.view);
 	}
 
 	void Menu::checkmouse(TheWholeLevel& the_whole_level){
+		the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
 		sf::FloatRect button1({96*scale,32*scale},{127*scale,19*scale});
 		sf::FloatRect button2({96*scale,64*scale},{127*scale,19*scale});
 		sf::FloatRect button3({96*scale,96*scale},{127*scale,19*scale});
