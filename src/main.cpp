@@ -9,10 +9,11 @@
 #include <map>
 
 bool FLY_MODE=false;
+
 bool PLACING_BLOCKS=false;
 bool CHEAT_MODE=false;
-bool VSYNC_TOGGLE=false;
-bool SHOW_FPS=false;
+bool VSYNC_TOGGLE=true;
+bool SHOW_FPS=true;
 
 struct Input{
 	bool M;
@@ -147,43 +148,38 @@ struct Button{
 	sf::Sprite sprite{global_assets.Button0_texture};
 	bool state=false;
 	sf::Text text{global_assets.font};
-	bool* bool_to_change=nullptr;
 
-	void setup(std::string text_string, sf::Vector2f coords,bool& new_bool_to_change, int char_size){
+	void setup(std::string text_string, sf::Vector2f coords, int char_size){
 		text.setString(text_string);
 		sprite.setPosition(coords);
 		text.setCharacterSize(char_size);
 		text.setPosition(coords+sf::Vector2f{70.f,64.f});
-		bool_to_change=&new_bool_to_change;
-		*bool_to_change=state;
 	}
 
 	void draw(TheWholeLevel& the_whole_level);
 
-	void update(TheWholeLevel& the_whole_level); 
+	void update(TheWholeLevel& the_whole_level, bool& bool_to_change); 
 
 };
 
 struct Settings{
 	sf::Sprite sprite{global_assets.Button0_texture};
-	std::vector <Button> buttons;
-	Button button;
+	Button button1;
+	Button button2;
+	Button button3;
+	Button button4;
 	void setup(){
-			button.state=true;
-		button.setup("Vsync",{0,0},VSYNC_TOGGLE,50);	
-			buttons.push_back(button);
+			button1.state=true;
+		button1.setup("Vsync",{0,0},50);	
 
-			button.state=false;
-		button.setup("CHEATS",{320,0},CHEAT_MODE,40);
-			buttons.push_back(button);
+			button2.state=false;
+		button2.setup("CHEATS",{320,0},40);
 
-			button.state=true;
-		button.setup("SHOW FPS",{640,0},SHOW_FPS,33);
-			buttons.push_back(button);
+			button3.state=true;
+		button3.setup("SHOW FPS",{640,0},33);
 
-			button.state=false;
-		button.setup("EDITOR",{960,0},PLACING_BLOCKS,45);
-			buttons.push_back(button);
+			button4.state=false;
+		button4.setup("EDITOR",{960,0},45);
 
 	}
 
@@ -952,32 +948,35 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		the_whole_level.window.setView(the_whole_level.camera.view);
 	}
 
-	void Button::update(TheWholeLevel& the_whole_level){
+	void Button::update(TheWholeLevel& the_whole_level, bool& bool_to_change){
 		sf::Vector2f mcords=the_whole_level.window.mapPixelToCoords(sf::Mouse::getPosition(the_whole_level.window));
 		if (sprite.getGlobalBounds().contains(mcords)){
 			text.setFillColor(sf::Color(0,0,255,255));
-			if (the_whole_level.input.Mouse1){state=!state;}
+			if (the_whole_level.input.Mouse1){bool_to_change=!bool_to_change;}
 		} else {text.setFillColor(sf::Color(255,255,255,255));}
-			*bool_to_change=state;
-		if (state){
+		if (bool_to_change){
 			sprite.setTexture(global_assets.Button1_texture);
 		} else {sprite.setTexture(global_assets.Button0_texture);}
 	}
 
 	void Settings::update(TheWholeLevel& the_whole_level){
 		the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
-		for (auto& button:buttons){
-			button.update(the_whole_level);
-		}
+			button1.update(the_whole_level,VSYNC_TOGGLE);
+			button2.update(the_whole_level,CHEAT_MODE);
+			button3.update(the_whole_level,SHOW_FPS);
+			button4.update(the_whole_level,PLACING_BLOCKS);
+
+
 		if (the_whole_level.player.gamestate=="settings" && the_whole_level.input.Escape && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)){
 			the_whole_level.player.gamestate="menu";
 		}
 	}
 
 	void Settings::draw(TheWholeLevel& the_whole_level){
-		for (auto& button:buttons){
-			button.draw(the_whole_level);
-		}
+			button1.draw(the_whole_level);
+			button2.draw(the_whole_level);
+			button3.draw(the_whole_level);
+			button4.draw(the_whole_level);
 	}
 
 	void Camera::follow_player(TheWholeLevel& the_whole_level){
