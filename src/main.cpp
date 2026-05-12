@@ -551,7 +551,7 @@ void draw_checkpoints(TheWholeLevel& the_whole_level){
 void fly_draw(TheWholeLevel& the_whole_level){
 	the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
 	static sf::Text text(global_assets.font);
-	text.setString("FLY:  ON");
+	//text.setString("FLY:  ON");
 	text.setPosition({0,0});
 	if (FLY_MODE){
 		the_whole_level.window.draw(text);
