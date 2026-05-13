@@ -107,6 +107,11 @@ struct Assets{
 	sf::Texture Spike_texture;
 	sf::Texture BlueWall_texture;
 	sf::Texture RedWall_texture;
+
+	sf::Texture LevelButton0_texture;
+	sf::Texture LevelButton1_texture;
+	sf::Texture LevelButtonClick_texture;
+	sf::Texture LevelButtonCur_texture;
 	void LoadAllTextures(){
 		if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
 		if (!player_texture.loadFromFile("../../assets/textures/PlayerTexture.png")){}
@@ -130,6 +135,11 @@ struct Assets{
 		if (!JumpPad_texture.loadFromFile("../../assets/textures/JumpPad.png")){}
 		if (!BlueWall_texture.loadFromFile("../../assets/textures/BlueWall.png")){}
 		if (!RedWall_texture.loadFromFile("../../assets/textures/RedWall.png")){}
+
+		if (!LevelButton0_texture.loadFromFile("../../assets/textures/LevelButton0.png")){}
+		if (!LevelButton1_texture.loadFromFile("../../assets/textures/LevelButton1.png")){}
+		if (!LevelButtonClick_texture.loadFromFile("../../assets/textures/LevelButtonClick.png")){}
+		if (!LevelButtonCur_texture.loadFromFile("../../assets/textures/LevelButtonCur.png")){}
 	}
 };
 Assets global_assets;
@@ -146,6 +156,35 @@ struct Menu;
 struct Clocks;
 struct Button;
 struct Settings;
+struct LeverSelector;
+struct SelectorButton;
+
+
+struct SelectorButton{
+	sf::Sprite sprite{global_assets.LevelButton0_texture};
+	int level_number;
+	sf::Text text{global_assets.font};
+
+	void setup(sf::Vector2f coords,int number){
+		sprite.setPosition(coords);
+		level_number=number;
+		text.setCharacterSize(100);
+		text.setString(std::to_string(number));
+		text.setPosition(coords+sf::Vector2f{100,70});
+	}
+
+	void draw(TheWholeLevel& the_whole_level);
+	void update(TheWholeLevel& the_whole_level);
+};
+
+
+struct LeverSelector{
+	std::vector<SelectorButton> level_buttons;
+
+	void setup(int& player_max_level);
+	void draw(TheWholeLevel& the_whole_level);
+	void update(TheWholeLevel& the_whole_level);
+};
 
 struct Button{
 	sf::Sprite sprite{global_assets.Button0_texture};
@@ -314,7 +353,7 @@ struct Player{
 
 	void finish_collision(){
 		if (sprite.getGlobalBounds().findIntersection(finish.sprite.getGlobalBounds())){
-			gamestate="escape";
+			gamestate="win";
 		}
 	}
 
@@ -401,6 +440,7 @@ struct TheWholeLevel{
 	std::map <std::pair<int,int>,Wall> walls_map;
 	
 	std::vector<Checkpoint> checkpoints;
+	LeverSelector level_selector;
 	Settings settings;
 	Clocks clocks;
 	Camera camera;
@@ -419,6 +459,7 @@ struct TheWholeLevel{
 		editor_blocks_text.setPosition({500,0});
 		winscreen.setup();
 		sky.setup({0,0});
+		level_selector.setup(player.max_level);
 	}
 		//wall    bouncy    spike    redwall   bluewall    jumppad
 	void next_type(){
@@ -737,9 +778,10 @@ int main()
 			the_whole_level.sky.setup({30,17});
 		}
 		the_whole_level.window.setVerticalSyncEnabled(VSYNC_TOGGLE);
-
-
-
+	//level_selector state
+		if (the_whole_level.player.gamestate=="level_selector"){
+			the_whole_level.level_selector.update(the_whole_level);
+		}
 	//menu state
 		if (the_whole_level.player.gamestate=="menu"){
 			the_whole_level.menu.checkmouse(the_whole_level);
@@ -754,8 +796,6 @@ int main()
 				}
 			}
 		}
-
-
 	//check escape
 		if (the_whole_level.player.gamestate=="win" || the_whole_level.player.gamestate=="escape"){
 			the_whole_level.winscreen.checkmouse(the_whole_level);
@@ -793,6 +833,10 @@ int main()
 	//settings screen
 		if (the_whole_level.player.gamestate=="settings"){
 			the_whole_level.settings.draw(the_whole_level);
+		}
+	//level_selector screen
+		if (the_whole_level.player.gamestate=="level_selector"){
+			the_whole_level.level_selector.draw(the_whole_level);
 		}
 	//menu screen
 		if (the_whole_level.player.gamestate=="menu"){
@@ -874,13 +918,18 @@ void WinScreen::checkmouse(TheWholeLevel& the_whole_level){
 		sf::Vector2i mouse_coords;
 		mouse_coords=sf::Mouse::getPosition(the_whole_level.window);
 		sf::Vector2f mouse_true_coords=the_whole_level.window.mapPixelToCoords(mouse_coords);
-		if (button1.contains(mouse_true_coords)){
+		if (the_whole_level.player.cur_max_unlocked_level==the_whole_level.player.current_level && the_whole_level.player.gamestate=="win"){
+			the_whole_level.player.cur_max_unlocked_level=the_whole_level.player.current_level+1;
+		}
+		if (button1.contains(mouse_true_coords) || the_whole_level.input.Enter){
 			sprite.setTexture(global_assets.Win1_texture);
-			if (the_whole_level.input.Mouse1){
-				the_whole_level.player.current_level++;
-				if (the_whole_level.player.current_level>the_whole_level.player.max_level){the_whole_level.player.current_level=1;}
-				the_whole_level.player.gamestate="playing";
-				LoadLevel(the_whole_level);
+			if (the_whole_level.input.Mouse1 || the_whole_level.input.Enter){
+				if (the_whole_level.player.current_level<the_whole_level.player.cur_max_unlocked_level){
+					the_whole_level.player.current_level++;
+					if (the_whole_level.player.current_level>the_whole_level.player.max_level){the_whole_level.player.current_level=1;}
+					the_whole_level.player.gamestate="playing";
+					LoadLevel(the_whole_level);
+				}
 			}
 		} else {
 			if (button2.contains(mouse_true_coords)){
@@ -1149,6 +1198,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			sprite.setTexture(global_assets.Menu1_texture);
 			if (the_whole_level.input.Mouse1){
 				the_whole_level.player.gamestate="playing";
+				the_whole_level.player.current_level=the_whole_level.player.cur_max_unlocked_level;
 				LoadLevel(the_whole_level);
 			}
 		} else {
@@ -1183,3 +1233,55 @@ void Menu::draw(TheWholeLevel& the_whole_level){
 		sprite.setScale({scale,scale});
 		the_whole_level.window.draw(sprite);
 	}
+
+
+void SelectorButton::draw(TheWholeLevel& the_whole_level){
+	the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+	the_whole_level.window.draw(sprite);
+	the_whole_level.window.draw(text);
+}
+
+void SelectorButton::update(TheWholeLevel& the_whole_level){
+	the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+	sf::Vector2f mouse_true_coords=the_whole_level.window.mapPixelToCoords(sf::Mouse::getPosition(the_whole_level.window));
+	if (level_number<the_whole_level.player.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButton1_texture);}
+	if (level_number>the_whole_level.player.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButton0_texture);}
+	if (level_number==the_whole_level.player.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButtonCur_texture);}
+	if (sprite.getGlobalBounds().contains(mouse_true_coords)){
+		if (level_number<=the_whole_level.player.cur_max_unlocked_level){
+			sprite.setTexture(global_assets.LevelButtonClick_texture);
+			if (the_whole_level.input.Mouse1){
+				the_whole_level.player.current_level=level_number;
+				LoadLevel(the_whole_level);
+				the_whole_level.player.gamestate="playing";
+			}
+		}
+	}
+}
+
+void LeverSelector::setup(int& player_max_level){
+	int level_counter=1;
+	SelectorButton cur_button;
+	for (int y=0;y<=3 && level_counter<=player_max_level;y++){
+		for (int x=0;x<=5 && level_counter<=player_max_level;x++){
+			cur_button.setup({float(x*300.f),float(y*300.f)},level_counter);
+			level_counter++;
+			level_buttons.push_back(cur_button);
+		}
+	}
+}
+
+void LeverSelector::draw(TheWholeLevel& the_whole_level){
+	the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+	for (auto& cur_button:level_buttons){
+		cur_button.draw(the_whole_level);
+	}
+}
+
+void LeverSelector::update(TheWholeLevel& the_whole_level){
+	the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
+	for (auto& cur_button:level_buttons){
+		cur_button.update(the_whole_level);
+	}
+	if (the_whole_level.input.Escape){the_whole_level.player.gamestate="menu";}
+}
