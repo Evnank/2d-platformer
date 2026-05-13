@@ -8,11 +8,11 @@
 #include <optional>
 #include <map>
 
-bool FLY_MODE=false;
-bool PLACING_BLOCKS=false;
-bool CHEAT_MODE=false;
-bool VSYNC_TOGGLE=true;
-bool SHOW_FPS=true;
+//bool FLY_MODE=false;
+//bool PLACING_BLOCKS=false;
+//bool CHEAT_MODE=false;
+//bool VSYNC_TOGGLE=true;
+//bool SHOW_FPS=true;
 
 struct Input{
 	bool M;
@@ -315,8 +315,6 @@ struct Player{
 	float checkpoint_countdown=50;
 	bool die=false;
 	int current_level=1;
-	int max_level=10;
-	int cur_max_unlocked_level=1;
 	int checkpoint_number=0;
 	std::string gamestate="menu"; //playing   escape  win   menu   level_selector     settings
 	Finish finish;
@@ -337,13 +335,7 @@ struct Player{
 
 	void gravity(TheWholeLevel& the_whole_level);
 	
-	void jumpIfPossible(TheWholeLevel& the_whole_level){
-		if (is_touching_down){
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
-				if (!FLY_MODE && able_to_jump){velocity.y-=15;}
-			}
-		}
-	}
+	void jumpIfPossible(TheWholeLevel& the_whole_level);
 	void sideways_movement(TheWholeLevel& the_whole_level);
 	void debug_movement(TheWholeLevel& the_whole_level);
 
@@ -449,6 +441,13 @@ struct TheWholeLevel{
 	Menu menu;
 	float dt=0;
 	sf::Text editor_blocks_text{global_assets.font};
+	bool FLY_MODE=false;
+	bool PLACING_BLOCKS=false;
+	bool CHEAT_MODE=false;
+	bool VSYNC_TOGGLE=true;
+	bool SHOW_FPS=true;
+	int max_level=10;
+	int cur_max_unlocked_level=1;
 
 	void setup(){
 		window.create(sf::VideoMode({1920, 1080}), "SFML works!", sf::State::Fullscreen);
@@ -459,7 +458,7 @@ struct TheWholeLevel{
 		editor_blocks_text.setPosition({500,0});
 		winscreen.setup();
 		sky.setup({0,0});
-		level_selector.setup(player.max_level);
+		level_selector.setup(max_level);
 	}
 		//wall    bouncy    spike    redwall   bluewall    jumppad
 	void next_type(){
@@ -596,6 +595,17 @@ void update_level_file(TheWholeLevel& the_whole_level){
 	}
 }
 
+void Teleport (TheWholeLevel& the_whole_level){
+	the_whole_level.window.setView(the_whole_level.camera.view);
+	sf::Vector2f mouse_true_coords=the_whole_level.window.mapPixelToCoords(sf::Mouse::getPosition(the_whole_level.window));
+	int cordx=int(floor(mouse_true_coords.x/64.f));
+	int cordy=int(floor(mouse_true_coords.y/64.f));
+		if (the_whole_level.input.LShift){
+		the_whole_level.player.sprite.setPosition({cordx*64.f,cordy*64.f});
+		std::cout<<cordx<<" "<<cordy<<'\n';
+	}
+}
+
 void mouse_block_placing(TheWholeLevel& the_whole_level){
 	if (the_whole_level.input.Tab){the_whole_level.next_type();}
 	the_whole_level.window.setView(the_whole_level.camera.view);
@@ -604,10 +614,6 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 	sf::Vector2f mouse_true_coords=the_whole_level.window.mapPixelToCoords(mouse_coords);
 	int cordx=int(floor(mouse_true_coords.x/64.f));
 	int cordy=int(floor(mouse_true_coords.y/64.f));
-	if (the_whole_level.input.LShift){
-		the_whole_level.player.sprite.setPosition({cordx*64.f,cordy*64.f});
-		std::cout<<cordx<<" "<<cordy<<'\n';
-	}
 	if (the_whole_level.input.Mouse1){
 		if (the_whole_level.editor_block_type!="finish"){
 			if (the_whole_level.editor_block_type!="player"){
@@ -653,13 +659,14 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 
 
 void Debugging(TheWholeLevel& the_whole_level){
-	if (the_whole_level.input.F1){FLY_MODE=true;}
-	if (the_whole_level.input.F2){FLY_MODE=false;}
+	if (the_whole_level.input.F1){the_whole_level.FLY_MODE=true;}
+	if (the_whole_level.input.F2){the_whole_level.FLY_MODE=false;}
 	if (the_whole_level.input.PageUp){LoadLevel(the_whole_level);the_whole_level.camera.setup();}
-	if (FLY_MODE){
+	if (the_whole_level.FLY_MODE){
 		the_whole_level.player.debug_movement(the_whole_level);
 	}
-	if (PLACING_BLOCKS){mouse_block_placing(the_whole_level);}
+	Teleport(the_whole_level);
+	if (the_whole_level.PLACING_BLOCKS){mouse_block_placing(the_whole_level);}
 }
 
 void draw_player(TheWholeLevel& the_whole_level){
@@ -711,15 +718,52 @@ void fly_draw(TheWholeLevel& the_whole_level){
 	static sf::Text text(global_assets.font);
 	text.setString("FLY:  ON");
 	text.setPosition({0,0});
-	if (FLY_MODE){
+	if (the_whole_level.FLY_MODE){
 		the_whole_level.window.draw(text);
 	}
+}
+
+void LoadGame(TheWholeLevel& the_whole_level){
+	int a;
+	std::fstream file("../../assets/settings.txt");
+	file>>a; 
+	the_whole_level.PLACING_BLOCKS=(a==1);
+	file>>a; 
+	the_whole_level.CHEAT_MODE=(a==1);
+	file>>a; 
+	the_whole_level.VSYNC_TOGGLE=(a==1);
+	file>>a; 
+	the_whole_level.SHOW_FPS=(a==1);
+	file>>a;
+	the_whole_level.cur_max_unlocked_level=a;
+	file>>a;
+	the_whole_level.max_level=a;
+}
+
+void SaveGame(TheWholeLevel& the_whole_level){
+	int a;
+	std::ofstream file("../../assets/settings.txt");
+	a=0; if (the_whole_level.PLACING_BLOCKS){a=1;}
+	file<<a<<'\n';
+	a=0; if (the_whole_level.CHEAT_MODE){a=1;}
+	file<<a<<'\n';
+	a=0; if (the_whole_level.VSYNC_TOGGLE){a=1;}
+	file<<a<<'\n';
+	a=0; if (the_whole_level.SHOW_FPS){a=1;}
+	file<<a<<'\n'<<'\n';
+	a=the_whole_level.cur_max_unlocked_level;
+	file<<a<<'\n';
+	a=the_whole_level.max_level;
+	file<<a;
+
+
 }
 
 int main()
 {
 	global_assets.LoadAllTextures();
 	TheWholeLevel the_whole_level;
+	LoadGame(the_whole_level);
 	the_whole_level.setup();
 	//the_whole_level.window.setVerticalSyncEnabled(true);
 	//the_whole_level.window.setFramerateLimit(1);
@@ -752,7 +796,7 @@ int main()
 		
 	//playing state
 		if (the_whole_level.player.gamestate=="playing"){
-			if (CHEAT_MODE){Debugging(the_whole_level);}
+			if (the_whole_level.CHEAT_MODE){Debugging(the_whole_level);}
 			the_whole_level.player.finish_collision();
 		//respawning
 			the_whole_level.player.checkpoint_colliion(the_whole_level);
@@ -765,9 +809,9 @@ int main()
 			the_whole_level.player.able_to_jump=true;
 			the_whole_level.player.die=false;
 			the_whole_level.player.sprite.move({the_whole_level.player.velocity.x*the_whole_level.dt,0.f});
-			if (!FLY_MODE){the_whole_level.player.wall_collision_x(the_whole_level);}
+			if (!the_whole_level.FLY_MODE){the_whole_level.player.wall_collision_x(the_whole_level);}
 			the_whole_level.player.sprite.move({0.f,the_whole_level.player.velocity.y*the_whole_level.dt});
-			if (!FLY_MODE){the_whole_level.player.wall_collision_y(the_whole_level);}
+			if (!the_whole_level.FLY_MODE){the_whole_level.player.wall_collision_y(the_whole_level);}
 			the_whole_level.camera.follow_player(the_whole_level);
 		}
 	//settings state
@@ -777,7 +821,7 @@ int main()
 			the_whole_level.sky.setup({0,0});
 			the_whole_level.sky.setup({30,17});
 		}
-		the_whole_level.window.setVerticalSyncEnabled(VSYNC_TOGGLE);
+		the_whole_level.window.setVerticalSyncEnabled(the_whole_level.VSYNC_TOGGLE);
 	//level_selector state
 		if (the_whole_level.player.gamestate=="level_selector"){
 			the_whole_level.level_selector.update(the_whole_level);
@@ -842,10 +886,10 @@ int main()
 		if (the_whole_level.player.gamestate=="menu"){
 			the_whole_level.menu.draw(the_whole_level);
 		}
-		if (SHOW_FPS){the_whole_level.clocks.draw_fps(the_whole_level);}
+		if (the_whole_level.SHOW_FPS){the_whole_level.clocks.draw_fps(the_whole_level);}
 			the_whole_level.clocks.draw_clock.stop();
 	//editor
-		if (PLACING_BLOCKS){
+		if (the_whole_level.PLACING_BLOCKS){
 			the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
 			the_whole_level.window.draw(the_whole_level.editor_blocks_text);
 		}
@@ -860,6 +904,7 @@ int main()
 	//PERFORMANCE CHECK
 		the_whole_level.clocks.update(the_whole_level);
 	}
+	SaveGame(the_whole_level);
 }
 
 
@@ -871,8 +916,14 @@ int main()
 
 
 
+
+
+
+
+
+
 void Clocks::update(TheWholeLevel& the_whole_level){
-	if (time_analysis && the_whole_level.input.R && CHEAT_MODE){
+	if (time_analysis && the_whole_level.input.R && the_whole_level.CHEAT_MODE){
 		std::cout<<"input: "<<input_clock.getElapsedTime().asMilliseconds()<<'\n';
 		std::cout<<"physics: "<<physics_clock.getElapsedTime().asMilliseconds()<<'\n';
 		std::cout<<"draw: "<<draw_clock.getElapsedTime().asMilliseconds()<<'\n';
@@ -918,15 +969,17 @@ void WinScreen::checkmouse(TheWholeLevel& the_whole_level){
 		sf::Vector2i mouse_coords;
 		mouse_coords=sf::Mouse::getPosition(the_whole_level.window);
 		sf::Vector2f mouse_true_coords=the_whole_level.window.mapPixelToCoords(mouse_coords);
-		if (the_whole_level.player.cur_max_unlocked_level==the_whole_level.player.current_level && the_whole_level.player.gamestate=="win"){
-			the_whole_level.player.cur_max_unlocked_level=the_whole_level.player.current_level+1;
+		if (the_whole_level.cur_max_unlocked_level==the_whole_level.player.current_level && the_whole_level.player.gamestate=="win"){
+			the_whole_level.cur_max_unlocked_level=the_whole_level.player.current_level+1;
+			the_whole_level.cur_max_unlocked_level=
+			std::min(the_whole_level.cur_max_unlocked_level,the_whole_level.max_level);
 		}
 		if (button1.contains(mouse_true_coords) || the_whole_level.input.Enter){
 			sprite.setTexture(global_assets.Win1_texture);
 			if (the_whole_level.input.Mouse1 || the_whole_level.input.Enter){
-				if (the_whole_level.player.current_level<the_whole_level.player.cur_max_unlocked_level){
+				if (the_whole_level.player.current_level<the_whole_level.cur_max_unlocked_level){
 					the_whole_level.player.current_level++;
-					if (the_whole_level.player.current_level>the_whole_level.player.max_level){the_whole_level.player.current_level=1;}
+					if (the_whole_level.player.current_level>the_whole_level.max_level){the_whole_level.player.current_level=1;}
 					the_whole_level.player.gamestate="playing";
 					LoadLevel(the_whole_level);
 				}
@@ -1036,8 +1089,16 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 	}
 
 	void Player::gravity(TheWholeLevel& the_whole_level){
-		if (!is_touching_down & !FLY_MODE){
+		if (!is_touching_down & !the_whole_level.FLY_MODE){
 			velocity.y+=0.5*the_whole_level.dt;
+		}
+	}
+
+	void Player::jumpIfPossible(TheWholeLevel& the_whole_level){
+		if (is_touching_down){
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
+				if (!the_whole_level.FLY_MODE && able_to_jump){velocity.y-=15;}
+			}
 		}
 	}
 
@@ -1135,10 +1196,10 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 
 	void Settings::update(TheWholeLevel& the_whole_level){
 		the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
-			button1.update(the_whole_level,VSYNC_TOGGLE);
-			button2.update(the_whole_level,CHEAT_MODE);
-			button3.update(the_whole_level,SHOW_FPS);
-			button4.update(the_whole_level,PLACING_BLOCKS);
+			button1.update(the_whole_level,the_whole_level.VSYNC_TOGGLE);
+			button2.update(the_whole_level,the_whole_level.CHEAT_MODE);
+			button3.update(the_whole_level,the_whole_level.SHOW_FPS);
+			button4.update(the_whole_level,the_whole_level.PLACING_BLOCKS);
 
 
 		if (the_whole_level.player.gamestate=="settings" && the_whole_level.input.Escape && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)){
@@ -1198,7 +1259,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			sprite.setTexture(global_assets.Menu1_texture);
 			if (the_whole_level.input.Mouse1){
 				the_whole_level.player.gamestate="playing";
-				the_whole_level.player.current_level=the_whole_level.player.cur_max_unlocked_level;
+				the_whole_level.player.current_level=the_whole_level.cur_max_unlocked_level;
 				LoadLevel(the_whole_level);
 			}
 		} else {
@@ -1244,11 +1305,11 @@ void SelectorButton::draw(TheWholeLevel& the_whole_level){
 void SelectorButton::update(TheWholeLevel& the_whole_level){
 	the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
 	sf::Vector2f mouse_true_coords=the_whole_level.window.mapPixelToCoords(sf::Mouse::getPosition(the_whole_level.window));
-	if (level_number<the_whole_level.player.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButton1_texture);}
-	if (level_number>the_whole_level.player.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButton0_texture);}
-	if (level_number==the_whole_level.player.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButtonCur_texture);}
+	if (level_number<the_whole_level.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButton1_texture);}
+	if (level_number>the_whole_level.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButton0_texture);}
+	if (level_number==the_whole_level.cur_max_unlocked_level){sprite.setTexture(global_assets.LevelButtonCur_texture);}
 	if (sprite.getGlobalBounds().contains(mouse_true_coords)){
-		if (level_number<=the_whole_level.player.cur_max_unlocked_level){
+		if (level_number<=the_whole_level.cur_max_unlocked_level){
 			sprite.setTexture(global_assets.LevelButtonClick_texture);
 			if (the_whole_level.input.Mouse1){
 				the_whole_level.player.current_level=level_number;
