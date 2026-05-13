@@ -333,10 +333,46 @@ struct Camera{
 };
 
 struct Sky{
-	sf::Vector2f size=sf::Vector2f(global_assets.sky_texture.getSize());	
-	sf::Sprite sprite{global_assets.sky_texture};
-	float scalex=6;
-	float scaley=6;
+	sf::VertexArray sky{sf::PrimitiveType::TriangleFan, 4};
+	sf::Transform transform;
+	sf::Color top_color{30, 30, 70,255};
+	sf::Color bottom_color{100, 150, 255};
+	float left=0;
+	float top=0;
+	float right=0;
+	float bottom=0;
+	float block_size=64.f;
+	float spare=20;
+
+	void reset(){
+		left=10000;
+		top=10000;
+		right=-10000;
+		bottom=-10000;
+	}
+
+	void setup(sf::Vector2f coords){
+		left=std::min(left,coords.x);
+		top=std::min(top,coords.y);
+		right=std::max(right,coords.x);
+		bottom=std::max(bottom,coords.y);
+
+		float x1=(left-spare)*block_size;
+		float x2=(right+spare)*block_size;
+		float y1=(top-spare)*block_size;
+		float y2=(bottom+spare)*block_size;
+
+		sky[0].position={x1,y1};
+		sky[1].position={x2,y1};
+		sky[2].position={x2,y2};
+		sky[3].position={x1,y2};
+
+
+		sky[0].color=top_color;
+		sky[1].color=top_color;
+		sky[2].color=bottom_color;
+		sky[3].color=bottom_color;
+	}
 	void draw(TheWholeLevel& the_whole_level);
 };
 
@@ -382,6 +418,7 @@ struct TheWholeLevel{
 		editor_blocks_text.setCharacterSize(50);
 		editor_blocks_text.setPosition({500,0});
 		winscreen.setup();
+		sky.setup({0,0});
 	}
 		//wall    bouncy    spike    redwall   bluewall    jumppad
 	void next_type(){
@@ -422,7 +459,7 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 	the_whole_level.checkpoints.clear();
 	float x,y,l;
 	static Wall wall;
-
+		the_whole_level.sky.reset();
 	while (file>>type){
 		wall.type="wall";
 		if (type=="player"){
@@ -491,6 +528,7 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 			file>>x>>y;
 			the_whole_level.player.finish.setup({x*64,y*64});
 		}
+		the_whole_level.sky.setup({x,y});
 	}
 }
 
@@ -694,6 +732,9 @@ int main()
 	//settings state
 		if (the_whole_level.player.gamestate=="settings"){
 			the_whole_level.settings.update(the_whole_level);
+			the_whole_level.sky.reset();
+			the_whole_level.sky.setup({0,0});
+			the_whole_level.sky.setup({30,17});
 		}
 		the_whole_level.window.setVerticalSyncEnabled(VSYNC_TOGGLE);
 
@@ -1086,11 +1127,13 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 	}
 
 	void Sky::draw(TheWholeLevel& the_whole_level){
-		the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
-		sprite.setPosition({0,0});
-		sprite.setScale({scalex,scaley});
-		the_whole_level.window.draw(sprite);
 		the_whole_level.window.setView(the_whole_level.camera.view);
+		static float sky_speed_multiplier=-1.f;
+		sf::Vector2f offset=the_whole_level.camera.view.getCenter()*sky_speed_multiplier;
+
+		sf::Transform transform;
+		transform.translate(the_whole_level.camera.view.getCenter()+offset);
+		the_whole_level.window.draw(sky,transform);
 	}
 
 	void Menu::checkmouse(TheWholeLevel& the_whole_level){
