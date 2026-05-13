@@ -8,11 +8,9 @@
 #include <optional>
 #include <map>
 
-//bool FLY_MODE=false;
-//bool PLACING_BLOCKS=false;
-//bool CHEAT_MODE=false;
-//bool VSYNC_TOGGLE=true;
-//bool SHOW_FPS=true;
+bool RESET_THE_WHOLE_SAVE=false;
+bool UNLOCK_ALL_LEVELS=false;
+
 
 struct Input{
 	bool M;
@@ -112,6 +110,9 @@ struct Assets{
 	sf::Texture LevelButton1_texture;
 	sf::Texture LevelButtonClick_texture;
 	sf::Texture LevelButtonCur_texture;
+
+	sf::Texture RedButton_texture;
+	sf::Texture BlueButton_texture;
 	void LoadAllTextures(){
 		if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
 		if (!player_texture.loadFromFile("../../assets/textures/PlayerTexture.png")){}
@@ -140,6 +141,9 @@ struct Assets{
 		if (!LevelButton1_texture.loadFromFile("../../assets/textures/LevelButton1.png")){}
 		if (!LevelButtonClick_texture.loadFromFile("../../assets/textures/LevelButtonClick.png")){}
 		if (!LevelButtonCur_texture.loadFromFile("../../assets/textures/LevelButtonCur.png")){}
+
+		if (!RedButton_texture.loadFromFile("../../assets/textures/RedButton.png")){}
+		if (!BlueButton_texture.loadFromFile("../../assets/textures/BlueButton.png")){}
 	}
 };
 Assets global_assets;
@@ -158,6 +162,24 @@ struct Button;
 struct Settings;
 struct LeverSelector;
 struct SelectorButton;
+struct BlueGameButton;
+struct RedGameButton;
+
+
+
+struct BlueGameButton{
+	sf::Sprite sprite{global_assets.BlueButton_texture};
+	bool was_pressed=false;
+
+	void check_press(TheWholeLevel& the_whole_level);
+};
+
+struct RedGameButton{
+	sf::Sprite sprite{global_assets.RedButton_texture};
+	bool was_pressed=false;
+
+	void check_press(TheWholeLevel& the_whole_level);
+};
 
 
 struct SelectorButton{
@@ -188,7 +210,6 @@ struct LeverSelector{
 
 struct Button{
 	sf::Sprite sprite{global_assets.Button0_texture};
-	bool state=false;
 	sf::Text text{global_assets.font};
 
 	void setup(std::string text_string, sf::Vector2f coords, int char_size){
@@ -210,18 +231,20 @@ struct Settings{
 	Button button2;
 	Button button3;
 	Button button4;
+	Button button5;
+	Button button6;
 	void setup(){
-			button1.state=true;
 		button1.setup("Vsync",{0,0},50);	
 
-			button2.state=false;
 		button2.setup("CHEATS",{320,0},40);
 
-			button3.state=true;
 		button3.setup("SHOW FPS",{640,0},33);
 
-			button4.state=false;
 		button4.setup("EDITOR",{960,0},45);
+
+		button5.setup("RESET",{0,900},45);
+
+		button6.setup("UNLOCK ALL",{1600,900},30);
 
 	}
 
@@ -281,6 +304,8 @@ struct Wall{
 		if (type=="bluewall"){sprite.setTexture(global_assets.BlueWall_texture);}
 		if (type=="redwall"){sprite.setTexture(global_assets.RedWall_texture);}
 	}
+
+	bool is_visible(TheWholeLevel& the_whole_level);
 };
 
 struct Checkpoint{
@@ -439,8 +464,14 @@ struct TheWholeLevel{
 	WinScreen winscreen;
 	Sky sky;
 	Menu menu;
+	std::map<std::pair<int,int>,BlueGameButton> BlueButtons;
+	std::map<std::pair<int,int>,RedGameButton> RedButtons;
 	float dt=0;
+	bool blue_wall_state=true;
+	bool red_wall_state=true;
 	sf::Text editor_blocks_text{global_assets.font};
+	bool editor_state=true;
+	sf::Text editor_state_text{global_assets.font};
 	bool FLY_MODE=false;
 	bool PLACING_BLOCKS=false;
 	bool CHEAT_MODE=false;
@@ -454,39 +485,47 @@ struct TheWholeLevel{
 		camera.setup();
 		player.current_level=1;
 		settings.setup();
-		editor_blocks_text.setCharacterSize(50);
+			editor_blocks_text.setCharacterSize(50);
 		editor_blocks_text.setPosition({500,0});
+			editor_state_text.setCharacterSize(50);
+		editor_state_text.setPosition({500,50});
 		winscreen.setup();
 		sky.setup({0,0});
 		level_selector.setup(max_level);
 	}
 		//wall    bouncy    spike    redwall   bluewall    jumppad
 	void next_type(){
-		if (editor_block_type=="wall"){editor_block_type="bouncy";}
-		 else{
-			if (editor_block_type=="bouncy"){editor_block_type="spike";}
-			 else {
-				if (editor_block_type=="spike"){editor_block_type="redwall";}
-				else{
-					if (editor_block_type=="redwall"){editor_block_type="bluewall";} 
-					else{
-						if (editor_block_type=="bluewall"){editor_block_type="jumppad";} 
-						else{
-							if (editor_block_type=="jumppad"){editor_block_type="finish";} 
-							else{
-								if (editor_block_type=="finish"){editor_block_type="checkpoint";} 
-								else{
-									if (editor_block_type=="checkpoint"){editor_block_type="wall";} 
-								} 
-							} 
-						} 
-					} 	
-				}
-			 }
-			
+		const std::vector<std::string> lst = {
+			"wall", 
+			"bouncy", 
+			"spike", 
+			"redwall", 
+			"bluewall", 
+			"jumppad", 
+			"finish", 
+			"checkpoint", 
+			"redbutton",
+			"bluebutton",
+		};
+		for (int i=0;i<lst.size();i++){
+			if (editor_block_type==lst[i]) {
+				editor_block_type = lst[(i+1) % lst.size()];
+				break;
+			}
 		}
-	}	
+	}
 	
+	void update_buttons(TheWholeLevel& the_whole_level);
+
+	void draw_buttons(){
+		window.setView(camera.view);
+		for (auto& button:BlueButtons){
+			window.draw(button.second.sprite);
+		}
+		for (auto& button:RedButtons){
+			window.draw(button.second.sprite);
+		}	
+	}
 };
 
 void LoadLevel(TheWholeLevel& the_whole_level){
@@ -497,6 +536,8 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 	std::string type;
 	the_whole_level.walls_map.clear();
 	the_whole_level.checkpoints.clear();
+	the_whole_level.BlueButtons.clear();
+	the_whole_level.RedButtons.clear();
 	float x,y,l;
 	static Wall wall;
 		the_whole_level.sky.reset();
@@ -530,16 +571,32 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 			wall.setup({x*64,y*64});
 			the_whole_level.walls_map[{int(x),int(y)}]=wall;
 		}
+		if (type=="bluebutton"){
+			file>>x>>y;
+			BlueGameButton cur_button;
+			cur_button.sprite.setPosition({x*64,y*64});
+			the_whole_level.BlueButtons[{x,y}]=cur_button;
+		}
+		if (type=="redbutton"){
+			file>>x>>y;
+			RedGameButton cur_button;
+			cur_button.sprite.setPosition({x*64,y*64});
+			the_whole_level.RedButtons[{x,y}]=cur_button;
+		}
 		if (type=="redwall"){
 			file>>x>>y;
 			wall.type="redwall";
 			wall.setup({x*64,y*64});
+			file>>l;
+			wall.visible=(l==1);
 			the_whole_level.walls_map[{int(x),int(y)}]=wall;
 		}
 		if (type=="bluewall"){
 			file>>x>>y;
 			wall.type="bluewall";
 			wall.setup({x*64,y*64});
+			file>>l;
+			wall.visible=(l==1);
 			the_whole_level.walls_map[{int(x),int(y)}]=wall;
 		}
 		if (type=="wallline"){
@@ -586,8 +643,19 @@ void update_level_file(TheWholeLevel& the_whole_level){
 			level_file<<"checkpoint "<<checkpoint.block_position.x<<" "<<checkpoint.block_position.y<<"\n";
 		}
 		level_file<<"\n";
+		for (auto& button:the_whole_level.BlueButtons){
+			level_file<<"bluebutton "<<button.first.first<<" "<<button.first.second<<"\n";
+		}
+		for (auto& button:the_whole_level.RedButtons){
+			level_file<<"redbutton "<<button.first.first<<" "<<button.first.second<<"\n";
+		}
+		level_file<<"\n";
 		for (auto& wall:the_whole_level.walls_map){
-			level_file<<wall.second.type<<" "<<wall.first.first<<" "<<wall.first.second<<"\n";
+			level_file<<wall.second.type<<" "<<wall.first.first<<" "<<wall.first.second;
+			if (wall.second.type=="bluewall" || wall.second.type=="redwall"){
+				int i=0; if (wall.second.visible){i=1;}
+				level_file<<" "<<i<<"\n";
+			} else {level_file<<"\n";}
 		}
 
 	} else{
@@ -614,15 +682,32 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 	sf::Vector2f mouse_true_coords=the_whole_level.window.mapPixelToCoords(mouse_coords);
 	int cordx=int(floor(mouse_true_coords.x/64.f));
 	int cordy=int(floor(mouse_true_coords.y/64.f));
+	if (the_whole_level.input.Multiply){the_whole_level.editor_state=!the_whole_level.editor_state;}
 	if (the_whole_level.input.Mouse1){
 		if (the_whole_level.editor_block_type!="finish"){
 			if (the_whole_level.editor_block_type!="player"){
 				if (the_whole_level.editor_block_type!="checkpoint"){
-					if (!(the_whole_level.walls_map.count({cordx,cordy})>0)){
-						Wall wall;
-						wall.type=the_whole_level.editor_block_type;
-						wall.setup({cordx*64.f,cordy*64.f});
-						the_whole_level.walls_map[{cordx,cordy}]=wall;
+					if (the_whole_level.editor_block_type!="bluebutton" && the_whole_level.editor_block_type!="redbutton"){
+						if (!(the_whole_level.walls_map.count({cordx,cordy})>0)){
+							Wall wall;
+							wall.type=the_whole_level.editor_block_type;
+							wall.setup({cordx*64.f,cordy*64.f});
+							if (the_whole_level.editor_block_type=="bluewall" || the_whole_level.editor_block_type=="redwall"){
+								wall.visible=the_whole_level.editor_state;
+							}
+							the_whole_level.walls_map[{cordx,cordy}]=wall;
+						}
+					} else {
+						if (the_whole_level.editor_block_type!="bluebutton"){
+							BlueGameButton cur_button;
+							cur_button.sprite.setPosition({float(cordx*64.f),float(cordy*64.f)});
+							the_whole_level.BlueButtons[{cordx,cordy}]=cur_button;
+						}
+						if (the_whole_level.editor_block_type!="redbutton"){
+							RedGameButton cur_button;
+							cur_button.sprite.setPosition({float(cordx*64.f),float(cordy*64.f)});
+							the_whole_level.RedButtons[{cordx,cordy}]=cur_button;
+						}
 					}
 				} else{
 					Checkpoint checkpoint;
@@ -644,6 +729,8 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 				the_whole_level.checkpoints.erase(the_whole_level.checkpoints.begin()+i);
 			}
 		}
+		the_whole_level.BlueButtons.erase({cordx,cordy});
+		the_whole_level.RedButtons.erase({cordx,cordy});
 	}
 
 	if (the_whole_level.input.F9){
@@ -655,6 +742,9 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 		update_level_file(the_whole_level);
 	}	
 	the_whole_level.editor_blocks_text.setString(the_whole_level.editor_block_type);
+	int curstate=0;
+	if (the_whole_level.editor_state){curstate=1;}
+	the_whole_level.editor_state_text.setString("state: "+std::to_string(curstate));
 }
 
 
@@ -681,9 +771,10 @@ void draw_walls(TheWholeLevel& the_whole_level){
 		for (int i=x-1;i<31+x;i++){
 			for (int g=y-1;g<18+y;g++){
 				if (the_whole_level.walls_map.count({i,g})>0){
-					if (the_whole_level.walls_map[{i,g}].visible){
-						the_whole_level.window.draw(the_whole_level.walls_map[{i,g}].sprite);
-					}
+					if (the_whole_level.walls_map[{i,g}].is_visible(the_whole_level)){
+						the_whole_level.walls_map[{i,g}].sprite.setColor(sf::Color(255,255,255,255));
+					} else {the_whole_level.walls_map[{i,g}].sprite.setColor(sf::Color(255,255,255,100));}
+					the_whole_level.window.draw(the_whole_level.walls_map[{i,g}].sprite);
 				}
 			}
 		}
@@ -799,6 +890,7 @@ int main()
 			if (the_whole_level.CHEAT_MODE){Debugging(the_whole_level);}
 			the_whole_level.player.finish_collision();
 		//respawning
+			the_whole_level.update_buttons(the_whole_level);
 			the_whole_level.player.checkpoint_colliion(the_whole_level);
 			the_whole_level.player.respawn_player(the_whole_level);
 		//changing velocity
@@ -859,6 +951,7 @@ int main()
 			}
 		if (the_whole_level.player.gamestate=="playing" || the_whole_level.player.gamestate=="win" || the_whole_level.player.gamestate=="escape"){
 			the_whole_level.window.setView(the_whole_level.camera.view);
+			the_whole_level.draw_buttons();
 				the_whole_level.clocks.draw_clock.stop();
 
 				the_whole_level.clocks.walls_draw_clock.start();
@@ -892,6 +985,7 @@ int main()
 		if (the_whole_level.PLACING_BLOCKS){
 			the_whole_level.window.setView(sf::View(sf::FloatRect({0,0},{1920,1080})));
 			the_whole_level.window.draw(the_whole_level.editor_blocks_text);
+			the_whole_level.window.draw(the_whole_level.editor_state_text);
 		}
 		//display
 			the_whole_level.clocks.display_clock.start();
@@ -1026,7 +1120,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		for (int xadd=-1;xadd<=1;xadd++){
 			for (int yadd=-1;yadd<=1;yadd++){
 				if (the_whole_level.walls_map.count({xcur+xadd,ycur+yadd})>0){
-					if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].visible){
+					if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].is_visible(the_whole_level)){
 						std::string curtype=the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type;
 						if (player_rect.findIntersection(the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getGlobalBounds())){
 							if (velocity.x>0){
@@ -1041,7 +1135,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 								if (curtype=="bouncy"){
 								if (abs(velocity.x)>1){velocity.x*=-1;} else {velocity.x=0;}
 							}
-							if (curtype=="wall"){velocity.x=0;}
+							if (curtype=="wall" || curtype=="redwall" || curtype=="bluewall"){velocity.x=0;}
 							if (curtype=="jumppad"){velocity.y=-33;}
 							if (curtype=="spike"){}
 							return;
@@ -1059,7 +1153,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		for (int xadd=-1;xadd<=1;xadd++){
 			for (int yadd=-1;yadd<=1;yadd++){
 				if (the_whole_level.walls_map.count({xcur+xadd,ycur+yadd})>0){
-					if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].visible){
+					if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].is_visible(the_whole_level)){
 						std::string curtype=the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type;
 						if (player_rect.findIntersection(the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getGlobalBounds())){
 							if (velocity.y>0){
@@ -1077,7 +1171,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 									velocity.y*=-1.f;able_to_jump=false;
 								} else {velocity.y=0;}
 							}
-							if (curtype=="wall"){velocity.y=0;}
+							if (curtype=="wall" || curtype=="redwall" || curtype=="bluewall"){velocity.y=0;}
 							if (curtype=="jumppad"){velocity.y=-33;able_to_jump=false;}
 							if (curtype=="spike"){die=true;velocity.y=0;}
 							return;
@@ -1200,7 +1294,10 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			button2.update(the_whole_level,the_whole_level.CHEAT_MODE);
 			button3.update(the_whole_level,the_whole_level.SHOW_FPS);
 			button4.update(the_whole_level,the_whole_level.PLACING_BLOCKS);
-
+			button5.update(the_whole_level,RESET_THE_WHOLE_SAVE);
+			button6.update(the_whole_level,UNLOCK_ALL_LEVELS);
+			if (RESET_THE_WHOLE_SAVE){RESET_THE_WHOLE_SAVE=false;the_whole_level.cur_max_unlocked_level=1;}
+			if (UNLOCK_ALL_LEVELS){UNLOCK_ALL_LEVELS=false;the_whole_level.cur_max_unlocked_level=the_whole_level.max_level;}
 
 		if (the_whole_level.player.gamestate=="settings" && the_whole_level.input.Escape && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)){
 			the_whole_level.player.gamestate="menu";
@@ -1212,6 +1309,8 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			button2.draw(the_whole_level);
 			button3.draw(the_whole_level);
 			button4.draw(the_whole_level);
+			button5.draw(the_whole_level);
+			button6.draw(the_whole_level);
 	}
 
 	void Camera::follow_player(TheWholeLevel& the_whole_level){
@@ -1346,3 +1445,43 @@ void LeverSelector::update(TheWholeLevel& the_whole_level){
 	}
 	if (the_whole_level.input.Escape){the_whole_level.player.gamestate="menu";}
 }
+
+
+bool Wall::is_visible(TheWholeLevel& the_whole_level){
+	bool output=true;
+	if (type=="bluewall" && visible!=the_whole_level.blue_wall_state){output=false;}
+	if (type=="redwall" && visible!=the_whole_level.red_wall_state){output=false;}
+	return output;
+}
+
+void BlueGameButton::check_press(TheWholeLevel& the_whole_level){
+	if (sprite.getGlobalBounds().findIntersection(the_whole_level.player.sprite.getGlobalBounds())){
+		if (!was_pressed){
+			the_whole_level.blue_wall_state=!the_whole_level.blue_wall_state;
+		}
+		was_pressed=true;
+	} else {
+		was_pressed=false;
+	}
+}
+
+
+void RedGameButton::check_press(TheWholeLevel& the_whole_level){
+	if (sprite.getGlobalBounds().findIntersection(the_whole_level.player.sprite.getGlobalBounds())){
+		if (!was_pressed){
+			the_whole_level.red_wall_state=!the_whole_level.red_wall_state;
+		}
+		was_pressed=true;
+	} else {
+		was_pressed=false;
+	}
+}
+
+void TheWholeLevel::update_buttons(TheWholeLevel& the_whole_level){
+		for (auto& button:BlueButtons){
+			button.second.check_press(the_whole_level);
+		}
+		for (auto& button:RedButtons){
+			button.second.check_press(the_whole_level);
+		}	
+	}
