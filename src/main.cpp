@@ -817,6 +817,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 							}
 							if (curtype=="wall"){velocity.x=0;}
 							if (curtype=="jumppad"){velocity.y=-33;}
+							if (curtype=="spike"){}
 							return;
 						}
 					}
@@ -852,7 +853,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 							}
 							if (curtype=="wall"){velocity.y=0;}
 							if (curtype=="jumppad"){velocity.y=-33;able_to_jump=false;}
-							if (curtype=="spike"){die=true;}
+							if (curtype=="spike"){die=true;velocity.y=0;}
 							return;
 						}
 					}
@@ -937,6 +938,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		if (checkpoint_countdown<=0 || the_whole_level.player.die){
 			checkpoint_countdown=50;
 			sprite.setPosition(current_checkpoint);
+			velocity={0.f,0.f};
 		}
 	}
 
@@ -982,7 +984,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		static float boundry_x=100;
 		static float boundry_y=200;
 		boundry_x=50;boundry_y=50;
-		static float boundry_speed=0.05;
+		static float boundry_speed=0.1;
 		float dt=the_whole_level.dt;
 		sf::Vector2f player_pos=the_whole_level.player.sprite.getPosition();
 		sf::Vector2f camera_pos=view.getCenter();
