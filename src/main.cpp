@@ -538,6 +538,8 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 	the_whole_level.checkpoints.clear();
 	the_whole_level.BlueButtons.clear();
 	the_whole_level.RedButtons.clear();
+	the_whole_level.blue_wall_state=true;
+	the_whole_level.red_wall_state=true;
 	float x,y,l;
 	static Wall wall;
 		the_whole_level.sky.reset();
@@ -1183,7 +1185,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 	}
 
 	void Player::gravity(TheWholeLevel& the_whole_level){
-		if (!is_touching_down & !the_whole_level.FLY_MODE){
+		if (!is_touching_down && !the_whole_level.FLY_MODE && velocity.y<64){
 			velocity.y+=0.5*the_whole_level.dt;
 		}
 	}
