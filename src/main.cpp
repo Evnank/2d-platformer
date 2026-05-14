@@ -116,19 +116,21 @@ struct Assets{
 	sf::Texture Button0_texture;
 	sf::Texture Button1_texture;
 
-	sf::Texture Bouncy_texture;
-	sf::Texture JumpPad_texture;
-	sf::Texture Spike_texture;
-	sf::Texture BlueWall_texture;
-	sf::Texture RedWall_texture;
-
 	sf::Texture LevelButton0_texture;
 	sf::Texture LevelButton1_texture;
 	sf::Texture LevelButtonClick_texture;
 	sf::Texture LevelButtonCur_texture;
 
+	sf::Texture Bouncy_texture;
+	sf::Texture JumpPad_texture;
+	sf::Texture Spike_texture;
+	sf::Texture BlueWall_texture;
+	sf::Texture RedWall_texture;
+	sf::Texture PurpleWall_texture;
+
 	sf::Texture RedButton_texture;
 	sf::Texture BlueButton_texture;
+	sf::Texture PurpleButton_texture;
 	void LoadAllTextures(){
 		if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
 		if (!player_texture.loadFromFile("../../assets/textures/PlayerTexture.png")){}
@@ -152,6 +154,7 @@ struct Assets{
 		if (!JumpPad_texture.loadFromFile("../../assets/textures/JumpPad.png")){}
 		if (!BlueWall_texture.loadFromFile("../../assets/textures/BlueWall.png")){}
 		if (!RedWall_texture.loadFromFile("../../assets/textures/RedWall.png")){}
+		if (!PurpleWall_texture.loadFromFile("../../assets/textures/PurpleWall.png")){}
 
 		if (!LevelButton0_texture.loadFromFile("../../assets/textures/LevelButton0.png")){}
 		if (!LevelButton1_texture.loadFromFile("../../assets/textures/LevelButton1.png")){}
@@ -160,6 +163,7 @@ struct Assets{
 
 		if (!RedButton_texture.loadFromFile("../../assets/textures/RedButton.png")){}
 		if (!BlueButton_texture.loadFromFile("../../assets/textures/BlueButton.png")){}
+		if (!PurpleButton_texture.loadFromFile("../../assets/textures/PurpleButton.png")){}
 	}
 };
 Assets global_assets;
@@ -192,6 +196,12 @@ struct BlueGameButton{
 
 struct RedGameButton{
 	sf::Sprite sprite{global_assets.RedButton_texture};
+	bool was_pressed=false;
+
+	void check_press(TheWholeLevel& the_whole_level);
+};
+struct PurpleGameButton{
+	sf::Sprite sprite{global_assets.PurpleButton_texture};
 	bool was_pressed=false;
 
 	void check_press(TheWholeLevel& the_whole_level);
@@ -309,7 +319,7 @@ struct Finish{
 struct Wall{
 	sf::Vector2f size=sf::Vector2f(global_assets.wall_texture.getSize());
 	sf::Sprite sprite{global_assets.wall_texture};
-	std::string type="wall"; //wall    bouncy    spike   redwall   bluewall    jumppad
+	std::string type="wall"; //wall    bouncy    spike   redwall   bluewall    jumppad   purplewall
 	bool visible=true;
 	void setup(sf::Vector2f setup_coords){
 		sprite.setPosition(setup_coords);
@@ -319,6 +329,7 @@ struct Wall{
 		if (type=="jumppad"){sprite.setTexture(global_assets.JumpPad_texture);}
 		if (type=="bluewall"){sprite.setTexture(global_assets.BlueWall_texture);}
 		if (type=="redwall"){sprite.setTexture(global_assets.RedWall_texture);}
+		if (type=="purplewall"){sprite.setTexture(global_assets.PurpleWall_texture);}
 	}
 
 	bool is_visible(TheWholeLevel& the_whole_level);
@@ -482,9 +493,11 @@ struct TheWholeLevel{
 	Menu menu;
 	std::map<std::pair<int,int>,BlueGameButton> BlueButtons;
 	std::map<std::pair<int,int>,RedGameButton> RedButtons;
+	std::map<std::pair<int,int>,PurpleGameButton> PurpleButtons;
 	float dt=0;
 	bool blue_wall_state=true;
 	bool red_wall_state=true;
+	bool purple_wall_state=true;
 	sf::Text editor_blocks_text{global_assets.font};
 	bool editor_state=true;
 	sf::Text editor_state_text{global_assets.font};
@@ -509,19 +522,22 @@ struct TheWholeLevel{
 		sky.setup({0,0});
 		level_selector.setup(max_level);
 	}
-		//wall    bouncy    spike    redwall   bluewall    jumppad
+		//wall    bouncy    spike    redwall   bluewall    jumppad  purplewall
 	void next_type(){
 		const std::vector<std::string> lst = {
 			"wall", 
-			"bouncy", 
-			"spike", 
+			
 			"redwall", 
 			"bluewall", 
-			"jumppad", 
-			"finish", 
-			"checkpoint", 
+			"purplewall",
 			"redbutton",
 			"bluebutton",
+			"purplebutton",
+			"jumppad", 
+			"bouncy", 
+			"spike", 
+			"checkpoint", 
+			"finish", 
 		};
 		for (int i=0;i<lst.size();i++){
 			if (editor_block_type==lst[i]) {
@@ -541,6 +557,9 @@ struct TheWholeLevel{
 		for (auto& button:RedButtons){
 			window.draw(button.second.sprite);
 		}	
+		for (auto& button:PurpleButtons){
+			window.draw(button.second.sprite);
+		}	
 	}
 };
 
@@ -554,8 +573,10 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 	the_whole_level.checkpoints.clear();
 	the_whole_level.BlueButtons.clear();
 	the_whole_level.RedButtons.clear();
+	the_whole_level.PurpleButtons.clear();
 	the_whole_level.blue_wall_state=true;
 	the_whole_level.red_wall_state=true;
+	the_whole_level.purple_wall_state=true;
 	float x,y,l;
 	static Wall wall;
 		the_whole_level.sky.reset();
@@ -601,6 +622,12 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 			cur_button.sprite.setPosition({x*64,y*64});
 			the_whole_level.RedButtons[{x,y}]=cur_button;
 		}
+		if (type=="purplebutton"){
+			file>>x>>y;
+			PurpleGameButton cur_button;
+			cur_button.sprite.setPosition({x*64,y*64});
+			the_whole_level.PurpleButtons[{x,y}]=cur_button;
+		}
 		if (type=="redwall"){
 			file>>x>>y;
 			wall.type="redwall";
@@ -612,6 +639,14 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 		if (type=="bluewall"){
 			file>>x>>y;
 			wall.type="bluewall";
+			wall.setup({x*64,y*64});
+			file>>l;
+			wall.visible=(l==1);
+			the_whole_level.walls_map[{int(x),int(y)}]=wall;
+		}
+		if (type=="purplewall"){
+			file>>x>>y;
+			wall.type="purplewall";
 			wall.setup({x*64,y*64});
 			file>>l;
 			wall.visible=(l==1);
@@ -667,10 +702,13 @@ void update_level_file(TheWholeLevel& the_whole_level){
 		for (auto& button:the_whole_level.RedButtons){
 			level_file<<"redbutton "<<button.first.first<<" "<<button.first.second<<"\n";
 		}
+		for (auto& button:the_whole_level.PurpleButtons){
+			level_file<<"purplebutton "<<button.first.first<<" "<<button.first.second<<"\n";
+		}
 		level_file<<"\n";
 		for (auto& wall:the_whole_level.walls_map){
 			level_file<<wall.second.type<<" "<<wall.first.first<<" "<<wall.first.second;
-			if (wall.second.type=="bluewall" || wall.second.type=="redwall"){
+			if (wall.second.type=="bluewall" || wall.second.type=="redwall" || wall.second.type=="purplewall"){
 				int i=0; if (wall.second.visible){i=1;}
 				level_file<<" "<<i<<"\n";
 			} else {level_file<<"\n";}
@@ -705,7 +743,8 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 		if (the_whole_level.editor_block_type!="finish"){
 			if (the_whole_level.editor_block_type!="player"){
 				if (the_whole_level.editor_block_type!="checkpoint"){
-					if (the_whole_level.editor_block_type!="bluebutton" && the_whole_level.editor_block_type!="redbutton"){
+					if (the_whole_level.editor_block_type!="bluebutton" && the_whole_level.editor_block_type!="redbutton" && 
+						the_whole_level.editor_block_type!="purplebutton"){
 						if (!(the_whole_level.walls_map.count({cordx,cordy})>0)){
 							Wall wall;
 							wall.type=the_whole_level.editor_block_type;
@@ -725,6 +764,11 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 							RedGameButton cur_button;
 							cur_button.sprite.setPosition({float(cordx*64.f),float(cordy*64.f)});
 							the_whole_level.RedButtons[{cordx,cordy}]=cur_button;
+						}
+						if (the_whole_level.editor_block_type=="purplebutton"){
+							PurpleGameButton cur_button;
+							cur_button.sprite.setPosition({float(cordx*64.f),float(cordy*64.f)});
+							the_whole_level.PurpleButtons[{cordx,cordy}]=cur_button;
 						}
 					}
 				} else{
@@ -749,6 +793,7 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 		}
 		the_whole_level.BlueButtons.erase({cordx,cordy});
 		the_whole_level.RedButtons.erase({cordx,cordy});
+		the_whole_level.PurpleButtons.erase({cordx,cordy});
 	}
 
 	if (the_whole_level.input.F9){
@@ -791,7 +836,7 @@ void draw_walls(TheWholeLevel& the_whole_level){
 				if (the_whole_level.walls_map.count({i,g})>0){
 					if (the_whole_level.walls_map[{i,g}].is_visible(the_whole_level)){
 						the_whole_level.walls_map[{i,g}].sprite.setColor(sf::Color(255,255,255,255));
-					} else {the_whole_level.walls_map[{i,g}].sprite.setColor(sf::Color(255,255,255,100));}
+					} else {the_whole_level.walls_map[{i,g}].sprite.setColor(sf::Color(255,255,255,80));}
 					the_whole_level.window.draw(the_whole_level.walls_map[{i,g}].sprite);
 				}
 			}
@@ -1153,7 +1198,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 								if (curtype=="bouncy"){
 								if (abs(velocity.x)>1){velocity.x*=-1;} else {velocity.x=0;}
 							}
-							if (curtype=="wall" || curtype=="redwall" || curtype=="bluewall"){velocity.x=0;}
+							if (curtype=="wall" || curtype=="redwall" || curtype=="bluewall" || curtype=="purplewall"){velocity.x=0;}
 							if (curtype=="jumppad"){velocity.y=-33;}
 							if (curtype=="spike"){}
 							return;
@@ -1189,7 +1234,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 									velocity.y*=-1.f;able_to_jump=false;
 								} else {velocity.y=0;}
 							}
-							if (curtype=="wall" || curtype=="redwall" || curtype=="bluewall"){velocity.y=0;}
+							if (curtype=="wall" || curtype=="redwall" || curtype=="bluewall" || curtype=="purplewall"){velocity.y=0;}
 							if (curtype=="jumppad"){velocity.y=-33;able_to_jump=false;}
 							if (curtype=="spike"){die=true;velocity.y=0;}
 							return;
@@ -1475,6 +1520,7 @@ bool Wall::is_visible(TheWholeLevel& the_whole_level){
 	bool output=true;
 	if (type=="bluewall" && visible!=the_whole_level.blue_wall_state){output=false;}
 	if (type=="redwall" && visible!=the_whole_level.red_wall_state){output=false;}
+	if (type=="purplewall" && visible!=the_whole_level.purple_wall_state){output=false;}
 	return output;
 }
 
@@ -1501,11 +1547,25 @@ void RedGameButton::check_press(TheWholeLevel& the_whole_level){
 	}
 }
 
+void PurpleGameButton::check_press(TheWholeLevel& the_whole_level){
+	if (sprite.getGlobalBounds().findIntersection(the_whole_level.player.sprite.getGlobalBounds())){
+		if (!was_pressed){
+			the_whole_level.purple_wall_state=!the_whole_level.purple_wall_state;
+		}
+		was_pressed=true;
+	} else {
+		was_pressed=false;
+	}
+}
+
 void TheWholeLevel::update_buttons(TheWholeLevel& the_whole_level){
 		for (auto& button:BlueButtons){
 			button.second.check_press(the_whole_level);
 		}
 		for (auto& button:RedButtons){
+			button.second.check_press(the_whole_level);
+		}	
+		for (auto& button:PurpleButtons){
 			button.second.check_press(the_whole_level);
 		}	
 	}
