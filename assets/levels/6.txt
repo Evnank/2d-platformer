@@ -1,12 +1,26 @@
-finish 157 123
+finish 99 6
 
 player 0 0
 
 checkpoint 14 7
+checkpoint 46 7
 
 bluebutton -9 -6
+bluebutton 23 13
+bluebutton 39 -3
+bluebutton 59 -5
+bluebutton 72 -4
+bluebutton 84 -16
 redbutton 7 -12
 redbutton 10 7
+redbutton 15 -3
+redbutton 20 11
+redbutton 23 12
+redbutton 53 11
+purplebutton 36 7
+purplebutton 43 0
+purplebutton 77 -10
+purplebutton 79 -26
 
 wall -13 -15
 wall -13 -14
@@ -186,9 +200,17 @@ wall 10 -4
 wall 10 -3
 wall 10 1
 wall 10 8
+wall 11 -7
+wall 11 -6
+wall 11 -5
+wall 11 -4
 wall 11 -3
 wall 11 1
 wall 11 8
+wall 12 -7
+wall 12 -6
+wall 12 -5
+wall 12 -4
 wall 12 -3
 wall 12 1
 wall 12 2
@@ -198,12 +220,21 @@ wall 12 5
 wall 12 6
 wall 12 7
 wall 12 8
+wall 13 -7
+wall 13 -6
+wall 13 -5
+wall 13 -4
 wall 13 -3
 wall 13 8
+wall 14 -7
+wall 14 -6
+wall 14 -5
+wall 14 -4
 wall 14 -3
 wall 14 8
-wall 15 -3
+wall 15 -7
 wall 15 8
+wall 16 -7
 wall 16 -3
 wall 16 -2
 wall 16 -1
@@ -213,9 +244,547 @@ wall 16 2
 wall 16 3
 wall 16 4
 wall 16 8
+wall 17 -7
+wall 17 -3
 wall 17 8
+wall 18 -7
+wall 18 -3
 wall 18 8
+wall 19 -7
+bluewall 19 -6 0
+bluewall 19 -5 0
+bluewall 19 -4 0
+wall 19 -3
 wall 19 8
-wall 20 8
+wall 19 9
+wall 19 10
+wall 19 11
+wall 19 12
+wall 19 13
+wall 19 14
+wall 19 15
+wall 19 16
+wall 19 17
+wall 19 18
+wall 19 19
+wall 19 20
+wall 20 -7
+redwall 20 -6 0
+redwall 20 -5 0
+redwall 20 -4 0
+wall 20 -3
+jumppad 20 19
+wall 20 20
+wall 21 -7
+wall 21 -3
 wall 21 8
+wall 21 20
 wall 22 8
+wall 22 9
+wall 22 10
+wall 22 11
+wall 22 12
+wall 22 13
+wall 22 14
+wall 22 15
+wall 22 16
+wall 22 17
+wall 22 20
+bluewall 23 8 0
+redwall 23 10 1
+wall 23 20
+wall 24 -3
+bluewall 24 8 0
+redwall 24 10 1
+wall 24 11
+wall 24 12
+wall 24 13
+wall 24 14
+wall 24 15
+wall 24 16
+wall 24 17
+wall 24 18
+wall 24 19
+wall 24 20
+wall 25 -3
+bluewall 25 8 0
+redwall 25 10 1
+wall 25 11
+wall 26 -3
+wall 26 8
+wall 26 9
+wall 26 10
+wall 26 11
+wall 27 8
+wall 28 -6
+wall 28 8
+wall 29 -6
+wall 29 8
+wall 30 -6
+wall 30 -1
+wall 30 8
+wall 31 0
+wall 31 5
+wall 31 8
+wall 32 5
+wall 32 8
+wall 33 -9
+wall 33 -8
+wall 33 -7
+wall 33 -6
+wall 33 -3
+wall 33 2
+wall 33 8
+wall 34 -9
+wall 34 -6
+redwall 34 -5 0
+redwall 34 -4 0
+wall 34 -3
+wall 34 2
+wall 34 8
+wall 35 -9
+wall 35 -6
+bluewall 35 -5 1
+bluewall 35 -4 1
+wall 35 -3
+wall 35 2
+wall 35 8
+wall 36 -9
+wall 36 -6
+wall 36 -3
+wall 36 8
+wall 37 -9
+wall 37 -6
+wall 37 -3
+wall 37 8
+wall 38 -9
+wall 38 -6
+wall 38 -3
+wall 38 8
+wall 39 -9
+wall 39 -6
+wall 39 8
+wall 40 -43
+wall 40 -42
+wall 40 -41
+wall 40 -40
+wall 40 -39
+wall 40 -38
+wall 40 -37
+wall 40 -36
+wall 40 -35
+wall 40 -34
+wall 40 -33
+wall 40 -32
+wall 40 -31
+wall 40 -30
+wall 40 -29
+wall 40 -28
+wall 40 -27
+wall 40 -26
+wall 40 -25
+wall 40 -24
+wall 40 -23
+wall 40 -22
+wall 40 -21
+wall 40 -20
+wall 40 -19
+wall 40 -18
+wall 40 -17
+wall 40 -16
+wall 40 -15
+wall 40 -14
+wall 40 -13
+wall 40 -12
+wall 40 -11
+wall 40 -10
+wall 40 -9
+wall 40 -8
+wall 40 -7
+wall 40 -6
+wall 40 -5
+wall 40 -4
+wall 40 -3
+wall 40 -2
+wall 40 -1
+wall 40 0
+wall 40 1
+wall 40 2
+wall 40 3
+wall 40 4
+redwall 40 5 1
+redwall 40 6 1
+redwall 40 7 1
+wall 40 8
+wall 41 -43
+wall 41 -8
+wall 41 -3
+wall 41 -2
+wall 41 -1
+wall 41 0
+wall 41 1
+wall 41 2
+wall 41 3
+wall 41 4
+purplewall 41 5 1
+purplewall 41 6 1
+purplewall 41 7 1
+wall 41 8
+wall 42 -43
+wall 42 -8
+wall 42 -3
+wall 42 -2
+wall 42 -1
+wall 42 0
+wall 42 1
+wall 42 2
+wall 42 3
+wall 42 4
+bluewall 42 5 1
+bluewall 42 6 1
+bluewall 42 7 1
+wall 42 8
+wall 43 -43
+wall 43 -8
+wall 43 -3
+wall 43 8
+wall 44 -43
+wall 44 -8
+wall 44 -3
+purplewall 44 -2 1
+purplewall 44 -1 1
+wall 44 0
+wall 44 8
+wall 45 -43
+wall 45 -8
+wall 45 -3
+bluewall 45 -2 1
+bluewall 45 -1 1
+wall 45 0
+wall 45 8
+wall 46 -43
+wall 46 -8
+wall 46 -7
+wall 46 -6
+wall 46 -5
+wall 46 -4
+wall 46 -3
+redwall 46 -2 1
+redwall 46 -1 1
+wall 46 0
+wall 46 8
+wall 47 -43
+wall 47 0
+wall 47 8
+wall 48 -43
+wall 48 0
+wall 48 8
+wall 49 -43
+wall 49 0
+wall 49 5
+wall 49 8
+wall 50 -43
+wall 50 5
+wall 50 8
+wall 51 -43
+wall 51 8
+wall 52 -43
+wall 52 -3
+wall 52 2
+wall 52 8
+wall 52 9
+wall 52 10
+wall 52 11
+wall 52 12
+wall 52 13
+wall 52 14
+wall 52 15
+wall 52 16
+wall 53 -43
+wall 53 -3
+wall 53 2
+jumppad 53 16
+wall 54 -43
+wall 54 2
+wall 54 8
+wall 54 9
+wall 54 10
+wall 54 11
+wall 54 12
+wall 54 13
+wall 54 14
+wall 54 16
+wall 55 -43
+wall 55 -9
+wall 55 -5
+redwall 55 8 1
+bluewall 55 9 0
+purplewall 55 10 1
+wall 55 16
+wall 56 -43
+wall 56 -9
+redwall 56 -8 1
+redwall 56 -7 1
+redwall 56 -6 1
+wall 56 -5
+redwall 56 8 1
+bluewall 56 9 0
+purplewall 56 10 1
+wall 56 16
+wall 57 -43
+wall 57 -9
+bluewall 57 -8 1
+bluewall 57 -7 1
+bluewall 57 -6 1
+wall 57 -5
+redwall 57 8 1
+bluewall 57 9 0
+purplewall 57 10 1
+wall 57 16
+wall 58 -43
+wall 58 -9
+purplewall 58 -8 0
+purplewall 58 -7 0
+purplewall 58 -6 0
+wall 58 -5
+wall 58 8
+wall 58 9
+wall 58 10
+wall 58 11
+wall 58 12
+wall 58 13
+wall 58 14
+wall 58 15
+wall 58 16
+wall 59 -43
+wall 59 -9
+wall 59 8
+wall 60 -43
+wall 60 -9
+wall 60 -8
+wall 60 -7
+wall 60 -6
+wall 60 -5
+wall 60 8
+wall 61 -43
+wall 61 5
+wall 61 8
+wall 62 -43
+wall 62 5
+wall 62 8
+wall 63 -43
+wall 63 5
+wall 63 8
+wall 64 -43
+jumppad 64 2
+wall 64 8
+wall 65 -43
+wall 65 -14
+wall 65 8
+wall 66 -43
+wall 66 -14
+wall 66 8
+wall 67 -43
+wall 67 -14
+wall 67 8
+wall 68 -43
+redwall 68 -17 0
+wall 68 -14
+wall 68 8
+wall 69 -43
+redwall 69 -17 0
+wall 69 -7
+wall 69 8
+wall 70 -43
+bluewall 70 -20 1
+redwall 70 -17 0
+wall 70 -7
+wall 70 8
+wall 71 -43
+bluewall 71 -20 1
+wall 71 -7
+wall 71 -6
+wall 71 -5
+wall 71 -4
+wall 71 8
+wall 72 -43
+purplewall 72 -23 1
+bluewall 72 -20 1
+redwall 72 -7 0
+bluewall 72 -6 0
+purplewall 72 -5 1
+wall 72 8
+wall 73 -43
+purplewall 73 -23 1
+wall 73 -10
+wall 73 -9
+wall 73 -8
+wall 73 -7
+wall 73 -6
+wall 73 -5
+wall 73 -4
+wall 73 8
+wall 74 -43
+purplewall 74 -23 1
+bluewall 74 -16 1
+bluewall 74 -15 1
+bluewall 74 -14 1
+bluewall 74 -13 0
+wall 74 8
+wall 75 -43
+bluewall 75 -16 1
+bluewall 75 -13 0
+wall 75 8
+wall 76 -43
+wall 76 -26
+bluewall 76 -16 1
+bluewall 76 -13 0
+bluewall 76 -12 0
+bluewall 76 -11 0
+bluewall 76 -10 0
+wall 76 8
+wall 77 -43
+wall 77 -26
+bluewall 77 -16 0
+redwall 77 -13 0
+purplewall 77 -12 1
+bluewall 77 -11 1
+wall 77 8
+wall 78 -43
+wall 78 -29
+wall 78 -26
+bluewall 78 -16 0
+bluewall 78 -15 0
+bluewall 78 -14 0
+bluewall 78 -13 0
+bluewall 78 -12 0
+bluewall 78 -11 0
+bluewall 78 -10 0
+wall 78 8
+wall 79 -43
+wall 79 -29
+wall 79 8
+wall 80 -43
+wall 80 -29
+wall 80 -28
+wall 80 -27
+wall 80 -26
+wall 80 -19
+wall 80 8
+wall 81 -43
+wall 81 -19
+wall 81 8
+wall 82 -43
+wall 82 -19
+wall 82 8
+wall 83 -43
+wall 83 -22
+wall 83 -19
+wall 83 -18
+wall 83 -17
+wall 83 -16
+wall 83 8
+wall 84 -43
+wall 84 -22
+redwall 84 -19 0
+bluewall 84 -18 1
+purplewall 84 -17 0
+wall 84 8
+wall 85 -43
+wall 85 -42
+wall 85 -41
+wall 85 -40
+wall 85 -39
+wall 85 -38
+wall 85 -37
+wall 85 -36
+wall 85 -35
+wall 85 -34
+wall 85 -33
+wall 85 -32
+wall 85 -31
+wall 85 -30
+wall 85 -29
+wall 85 -28
+wall 85 -27
+wall 85 -26
+wall 85 -25
+wall 85 -24
+wall 85 -23
+wall 85 -22
+wall 85 -21
+wall 85 -20
+wall 85 -19
+wall 85 -18
+wall 85 -17
+wall 85 -16
+wall 85 -15
+wall 85 -14
+wall 85 -13
+wall 85 -12
+wall 85 -11
+wall 85 -10
+wall 85 -9
+wall 85 -8
+wall 85 -7
+wall 85 -6
+wall 85 -5
+wall 85 -4
+wall 85 -3
+wall 85 -2
+wall 85 -1
+wall 85 0
+wall 85 1
+wall 85 2
+wall 85 3
+wall 85 8
+wall 86 3
+redwall 86 4 0
+redwall 86 5 0
+redwall 86 6 0
+redwall 86 7 0
+wall 86 8
+wall 87 3
+wall 87 8
+wall 88 3
+bluewall 88 4 0
+bluewall 88 5 0
+bluewall 88 6 0
+bluewall 88 7 0
+wall 88 8
+wall 89 3
+wall 89 8
+wall 90 3
+purplewall 90 4 0
+purplewall 90 5 0
+purplewall 90 6 0
+purplewall 90 7 0
+wall 90 8
+wall 91 3
+wall 91 8
+wall 92 3
+wall 92 8
+wall 93 3
+wall 93 8
+wall 94 3
+wall 94 8
+wall 95 3
+wall 95 8
+wall 96 3
+wall 96 8
+wall 97 3
+wall 97 8
+wall 98 3
+wall 98 8
+wall 99 3
+wall 99 8
+wall 100 3
+wall 100 8
+wall 101 3
+wall 101 8
+wall 102 3
+wall 102 4
+wall 102 5
+wall 102 6
+wall 102 7
+wall 102 8

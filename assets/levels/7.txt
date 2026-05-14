@@ -3,9 +3,7 @@ finish 157 123
 player 0 0
 
 
-purplebutton 2 -1
 
-purplewall -1 -3 1
 wall -1 1
 wall 0 1
 wall 1 1

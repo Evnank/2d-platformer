@@ -749,7 +749,8 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 							Wall wall;
 							wall.type=the_whole_level.editor_block_type;
 							wall.setup({cordx*64.f,cordy*64.f});
-							if (the_whole_level.editor_block_type=="bluewall" || the_whole_level.editor_block_type=="redwall"){
+							if (the_whole_level.editor_block_type=="bluewall" || the_whole_level.editor_block_type=="redwall" || 
+								the_whole_level.editor_block_type=="purplewall"){
 								wall.visible=the_whole_level.editor_state;
 							}
 							the_whole_level.walls_map[{cordx,cordy}]=wall;
