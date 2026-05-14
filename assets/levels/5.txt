@@ -8,7 +8,7 @@ checkpoint 69 -25
 checkpoint 77 -70
 checkpoint 94 -72
 
-bluebutton -7 0
+bluebutton -2 0
 bluebutton 12 -7
 bluebutton 27 -24
 bluebutton 27 -15
@@ -212,6 +212,15 @@ redwall 34 -24 0
 wall 34 -14
 spike 34 0
 wall 34 1
+wall 35 -46
+wall 35 -45
+wall 35 -44
+wall 35 -43
+wall 35 -42
+wall 35 -41
+wall 35 -40
+wall 35 -39
+wall 35 -38
 wall 35 -37
 wall 35 -36
 wall 35 -35
@@ -318,6 +327,16 @@ wall 51 -29
 wall 51 -14
 spike 51 0
 wall 51 1
+wall 52 -86
+wall 52 -85
+wall 52 -84
+wall 52 -83
+wall 52 -82
+wall 52 -81
+wall 52 -80
+wall 52 -79
+wall 52 -78
+wall 52 -77
 wall 52 -76
 wall 52 -75
 wall 52 -74
@@ -367,6 +386,7 @@ wall 52 -24
 wall 52 -14
 spike 52 0
 wall 52 1
+wall 53 -86
 jumppad 53 -59
 spike 53 -38
 wall 53 -37
@@ -382,17 +402,20 @@ redwall 53 -27 0
 wall 53 -14
 spike 53 0
 wall 53 1
+wall 54 -86
 spike 54 -38
 wall 54 -37
 redwall 54 -27 0
 wall 54 -14
 spike 54 0
 wall 54 1
+wall 55 -86
 spike 55 -38
 wall 55 -37
 wall 55 -14
 spike 55 0
 wall 55 1
+wall 56 -86
 spike 56 -38
 wall 56 -37
 redwall 56 -24 0
@@ -400,6 +423,7 @@ wall 56 -17
 wall 56 -14
 spike 56 0
 wall 56 1
+wall 57 -86
 spike 57 -38
 wall 57 -37
 redwall 57 -24 0
@@ -407,6 +431,7 @@ wall 57 -17
 wall 57 -14
 spike 57 0
 wall 57 1
+wall 58 -86
 spike 58 -38
 wall 58 -37
 redwall 58 -24 0
@@ -414,12 +439,14 @@ wall 58 -17
 wall 58 -14
 spike 58 0
 wall 58 1
+wall 59 -86
 spike 59 -38
 wall 59 -37
 wall 59 -19
 wall 59 -14
 spike 59 0
 wall 59 1
+wall 60 -86
 spike 60 -38
 wall 60 -37
 bluewall 60 -22 1
@@ -427,12 +454,14 @@ wall 60 -19
 wall 60 -14
 spike 60 0
 wall 60 1
+wall 61 -86
 spike 61 -38
 wall 61 -37
 redwall 61 -22 0
 wall 61 -14
 spike 61 0
 wall 61 1
+wall 62 -86
 spike 62 -38
 wall 62 -37
 wall 62 -36
@@ -460,6 +489,7 @@ bluewall 62 -15 1
 wall 62 -14
 spike 62 0
 wall 62 1
+wall 63 -86
 wall 63 -43
 wall 63 -42
 wall 63 -41
@@ -472,6 +502,7 @@ redwall 63 -23 1
 wall 63 -14
 spike 63 0
 wall 63 1
+wall 64 -86
 jumppad 64 -43
 wall 64 -42
 wall 64 -41
@@ -484,12 +515,14 @@ redwall 64 -23 1
 wall 64 -14
 spike 64 0
 wall 64 1
+wall 65 -86
 wall 65 -28
 redwall 65 -23 1
 jumppad 65 -15
 wall 65 -14
 spike 65 0
 wall 65 1
+wall 66 -86
 redwall 66 -67 0
 wall 66 -28
 wall 66 -24
@@ -505,6 +538,7 @@ wall 66 -15
 wall 66 -14
 spike 66 0
 wall 66 1
+wall 67 -86
 redwall 67 -67 0
 bluewall 67 -38 1
 redwall 67 -31 1
@@ -512,6 +546,7 @@ wall 67 -28
 wall 67 -24
 spike 67 0
 wall 67 1
+wall 68 -86
 redwall 68 -67 0
 bluewall 68 -38 1
 redwall 68 -31 1
@@ -519,6 +554,7 @@ wall 68 -28
 wall 68 -24
 spike 68 0
 wall 68 1
+wall 69 -86
 redwall 69 -67 0
 wall 69 -62
 wall 69 -61
@@ -544,33 +580,42 @@ wall 69 -28
 wall 69 -24
 spike 69 0
 wall 69 1
+wall 70 -86
 redwall 70 -67 0
 wall 70 -62
+wall 70 -45
 wall 70 -28
 wall 70 -24
 spike 70 0
 wall 70 1
+wall 71 -86
 redwall 71 -67 0
 wall 71 -62
+wall 71 -45
 wall 71 -27
 wall 71 -24
 spike 71 0
 wall 71 1
+wall 72 -86
 wall 72 -62
+wall 72 -45
 redwall 72 -35 0
 redwall 72 -34 0
 redwall 72 -33 0
 wall 72 -24
 spike 72 0
 wall 72 1
+wall 73 -86
 wall 73 -69
 wall 73 -62
+wall 73 -45
 redwall 73 -35 0
 bluewall 73 -34 1
 redwall 73 -33 0
 wall 73 -24
 spike 73 0
 wall 73 1
+wall 74 -86
 wall 74 -69
 wall 74 -68
 wall 74 -67
@@ -579,36 +624,73 @@ wall 74 -65
 wall 74 -64
 wall 74 -63
 wall 74 -62
+wall 74 -45
 redwall 74 -35 0
 redwall 74 -34 0
 redwall 74 -33 0
 wall 74 -24
 spike 74 0
 wall 74 1
+wall 75 -92
+wall 75 -91
+wall 75 -90
+wall 75 -89
+wall 75 -88
+wall 75 -87
+wall 75 -86
 wall 75 -69
+spike 75 -63
+wall 75 -62
+wall 75 -45
 wall 75 -24
 spike 75 0
 wall 75 1
+wall 76 -92
 wall 76 -69
+spike 76 -63
+wall 76 -62
+wall 76 -45
 bluewall 76 -37 0
+wall 76 -24
 spike 76 0
 wall 76 1
+wall 77 -92
 wall 77 -69
+spike 77 -63
+wall 77 -62
+wall 77 -45
 bluewall 77 -37 0
+wall 77 -24
 spike 77 0
 wall 77 1
+wall 78 -92
 wall 78 -69
+spike 78 -63
+wall 78 -62
+wall 78 -45
 bluewall 78 -37 0
+wall 78 -24
 spike 78 0
 wall 78 1
+wall 79 -92
 wall 79 -69
+spike 79 -63
+wall 79 -62
+wall 79 -45
 bluewall 79 -37 0
+wall 79 -24
 spike 79 0
 wall 79 1
+wall 80 -92
 wall 80 -69
+spike 80 -63
+wall 80 -62
+wall 80 -45
 bluewall 80 -37 0
+wall 80 -24
 spike 80 0
 wall 80 1
+wall 81 -92
 bluewall 81 -75 1
 bluewall 81 -74 1
 bluewall 81 -73 1
@@ -616,52 +698,143 @@ bluewall 81 -72 1
 bluewall 81 -71 1
 bluewall 81 -70 1
 wall 81 -69
+spike 81 -63
+wall 81 -62
+wall 81 -45
+wall 81 -24
 spike 81 0
 wall 81 1
+wall 82 -92
+spike 82 -63
+wall 82 -62
+wall 82 -45
+wall 82 -24
 spike 82 0
 wall 82 1
+wall 83 -92
 redwall 83 -72 1
 redwall 83 -71 1
 redwall 83 -70 1
+spike 83 -63
+wall 83 -62
+wall 83 -45
+wall 83 -24
 spike 83 0
 wall 83 1
+wall 84 -92
 redwall 84 -72 1
 bluewall 84 -71 1
 redwall 84 -70 1
+spike 84 -63
+wall 84 -62
+wall 84 -45
+wall 84 -24
 spike 84 0
 wall 84 1
+wall 85 -92
 wall 85 -73
 redwall 85 -72 1
 bluewall 85 -71 1
 redwall 85 -70 1
+spike 85 -63
+wall 85 -62
+wall 85 -45
+wall 85 -24
 spike 85 0
 wall 85 1
+wall 86 -92
 bluewall 86 -79 1
 wall 86 -73
 wall 86 -71
+spike 86 -63
+wall 86 -62
+wall 86 -45
+wall 86 -24
 spike 86 0
 wall 86 1
+wall 87 -92
 bluewall 87 -79 1
 wall 87 -73
 wall 87 -71
+wall 87 -70
+wall 87 -69
+wall 87 -68
+wall 87 -67
+wall 87 -66
+wall 87 -65
+wall 87 -64
+wall 87 -63
+wall 87 -62
+wall 87 -61
+wall 87 -60
+wall 87 -59
+wall 87 -58
+wall 87 -57
+wall 87 -56
+wall 87 -55
+wall 87 -54
+wall 87 -53
+wall 87 -52
+wall 87 -51
+wall 87 -50
+wall 87 -49
+wall 87 -48
+wall 87 -47
+wall 87 -46
+wall 87 -45
+wall 87 -44
+wall 87 -43
+wall 87 -42
+wall 87 -41
+wall 87 -40
+wall 87 -39
+wall 87 -38
+wall 87 -37
+wall 87 -36
+wall 87 -35
+wall 87 -34
+wall 87 -33
+wall 87 -32
+wall 87 -31
+wall 87 -30
+wall 87 -29
+wall 87 -28
+wall 87 -27
+wall 87 -26
+wall 87 -25
+wall 87 -24
 spike 87 0
 wall 87 1
+wall 88 -92
 wall 88 -73
 wall 88 -71
 spike 88 0
 wall 88 1
+wall 89 -92
 bluewall 89 -82 0
 bluewall 89 -76 0
 wall 89 -73
 wall 89 -71
 spike 89 0
 wall 89 1
+wall 90 -92
 bluewall 90 -82 0
 bluewall 90 -76 0
 wall 90 -73
 wall 90 -71
 spike 90 0
 wall 90 1
+wall 91 -92
+wall 91 -91
+wall 91 -90
+wall 91 -89
+wall 91 -88
+wall 91 -87
+wall 91 -86
+wall 91 -85
+wall 91 -84
+wall 91 -83
+wall 91 -82
 wall 91 -81
 wall 91 -80
 wall 91 -79
@@ -692,30 +865,51 @@ wall 96 1
 wall 97 -71
 spike 97 0
 wall 97 1
+wall 98 -71
 spike 98 0
 wall 98 1
 bluewall 99 -74 1
+spike 99 -72
+wall 99 -71
 spike 99 0
 wall 99 1
 bluewall 100 -74 1
+spike 100 -72
+wall 100 -71
 spike 100 0
 wall 100 1
 bluewall 101 -74 1
+spike 101 -72
+wall 101 -71
 spike 101 0
 wall 101 1
+spike 102 -72
+wall 102 -71
 spike 102 0
 wall 102 1
+spike 103 -72
+wall 103 -71
 spike 103 0
 wall 103 1
 bluewall 104 -77 0
+spike 104 -72
+wall 104 -71
 spike 104 0
 wall 104 1
 bluewall 105 -77 0
+spike 105 -72
+wall 105 -71
 spike 105 0
 wall 105 1
 bluewall 106 -77 0
+spike 106 -72
+wall 106 -71
 wall 106 1
+spike 107 -72
+wall 107 -71
 wall 107 1
+spike 108 -72
+wall 108 -71
 wall 108 1
 bluewall 109 -113 1
 bluewall 109 -112 1
@@ -738,10 +932,14 @@ bluewall 109 -96 1
 bluewall 109 -95 1
 bluewall 109 -94 1
 bluewall 109 -80 1
+spike 109 -72
+wall 109 -71
 bluewall 110 -113 1
 redwall 110 -101 0
 jumppad 110 -94
 bluewall 110 -80 1
+spike 110 -72
+wall 110 -71
 bluewall 111 -113 1
 bluewall 111 -109 1
 bluewall 111 -108 1
@@ -758,49 +956,75 @@ bluewall 111 -98 1
 bluewall 111 -97 1
 bluewall 111 -94 1
 bluewall 111 -80 1
+spike 111 -72
+wall 111 -71
 wall 112 -113
 wall 112 -109
 bluewall 112 -94 1
+spike 112 -72
+wall 112 -71
 wall 113 -113
 wall 113 -109
 bluewall 113 -94 1
 bluewall 113 -83 0
+spike 113 -72
+wall 113 -71
 wall 114 -113
 wall 114 -109
 bluewall 114 -94 1
 bluewall 114 -83 0
+spike 114 -72
+wall 114 -71
 wall 115 -113
 wall 115 -109
 bluewall 115 -94 1
 bluewall 115 -83 0
+spike 115 -72
+wall 115 -71
 wall 116 -113
 wall 116 -109
 bluewall 116 -94 1
+spike 116 -72
+wall 116 -71
 wall 117 -113
 wall 117 -109
+spike 117 -72
+wall 117 -71
 wall 118 -113
 wall 118 -109
+spike 118 -72
+wall 118 -71
 wall 119 -113
 wall 119 -109
+spike 119 -72
+wall 119 -71
 wall 120 -113
 wall 120 -109
 redwall 120 -92 0
 bluewall 120 -89 0
 bluewall 120 -86 1
+spike 120 -72
+wall 120 -71
 wall 121 -113
 wall 121 -109
 redwall 121 -92 0
 bluewall 121 -89 0
 bluewall 121 -86 1
+spike 121 -72
+wall 121 -71
 wall 122 -113
 wall 122 -109
 redwall 122 -92 0
 bluewall 122 -89 0
 bluewall 122 -86 1
+spike 122 -72
+wall 122 -71
 wall 123 -113
 wall 123 -109
 redwall 123 -92 0
 bluewall 123 -89 0
+spike 123 -72
+wall 123 -71
 wall 124 -113
 wall 124 -112
 wall 124 -111
@@ -808,3 +1032,50 @@ wall 124 -110
 wall 124 -109
 redwall 124 -92 0
 bluewall 124 -89 0
+spike 124 -72
+wall 124 -71
+wall 125 -109
+spike 125 -72
+wall 125 -71
+wall 126 -109
+spike 126 -72
+wall 126 -71
+wall 127 -109
+wall 127 -108
+wall 127 -107
+wall 127 -106
+wall 127 -105
+wall 127 -104
+wall 127 -103
+wall 127 -102
+wall 127 -101
+wall 127 -100
+wall 127 -99
+wall 127 -98
+wall 127 -97
+wall 127 -96
+wall 127 -95
+wall 127 -94
+wall 127 -93
+wall 127 -92
+wall 127 -91
+wall 127 -90
+wall 127 -89
+wall 127 -88
+wall 127 -87
+wall 127 -86
+wall 127 -85
+wall 127 -84
+wall 127 -83
+wall 127 -82
+wall 127 -81
+wall 127 -80
+wall 127 -79
+wall 127 -78
+wall 127 -77
+wall 127 -76
+wall 127 -75
+wall 127 -74
+wall 127 -73
+wall 127 -72
+wall 127 -71

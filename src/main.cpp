@@ -31,6 +31,11 @@ struct Input{
 	bool Enter;
 	bool Multiply;
 	bool Tab;
+	bool w;
+	bool a;
+	bool s;
+	bool d;
+	bool Space;
 
 	void read(const std::optional<sf::Event>& event){
 		if (const auto* key=event->getIf<sf::Event::KeyPressed>()){
@@ -50,6 +55,12 @@ struct Input{
 			if (key->code == sf::Keyboard::Key::Enter){Enter=true;}
 			if (key->code == sf::Keyboard::Key::Multiply){Multiply=true;}
 			if (key->code == sf::Keyboard::Key::Tab){Tab=true;}
+
+			if (key->code == sf::Keyboard::Key::W){w=true;}
+			if (key->code == sf::Keyboard::Key::A){a=true;}
+			if (key->code == sf::Keyboard::Key::S){s=true;}
+			if (key->code == sf::Keyboard::Key::D){d=true;}
+			if (key->code == sf::Keyboard::Key::Space){Space=true;}
 		}
 		if (const auto* mouse=event->getIf<sf::Event::MouseButtonPressed>()){
 			if (mouse->button == sf::Mouse::Button::Left){Mouse1=true;}
@@ -77,6 +88,11 @@ struct Input{
 		Enter=false;
 		Multiply=false;
 		Tab=false;
+		w=false;
+		a=false;
+		s=false;
+		d=false;
+		Space=false;
 	}
 
 };
@@ -1169,7 +1185,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 							}	
 							//velocity.y=-velocity.y;
 							if (curtype=="bouncy"){
-								if (abs(velocity.y)>1 && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down)){
+								if (abs(velocity.y)>1 && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)){
 									velocity.y*=-1.f;able_to_jump=false;
 								} else {velocity.y=0;}
 							}
@@ -1192,7 +1208,9 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 
 	void Player::jumpIfPossible(TheWholeLevel& the_whole_level){
 		if (is_touching_down){
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up)){
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) ||
+			the_whole_level.input.up || the_whole_level.input.w || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) ||
+			the_whole_level.input.Space){
 				if (!the_whole_level.FLY_MODE && able_to_jump){velocity.y-=15;}
 			}
 		}
@@ -1209,12 +1227,14 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			mult=2;
 			lossmult=1;
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || the_whole_level.input.right){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right) || the_whole_level.input.right ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) || the_whole_level.input.d){
 			velocity.x=std::min(velocity.x+acceleration*mult*the_whole_level.dt,top_speed);
 			move=true;
 		} 
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || the_whole_level.input.left){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left) || the_whole_level.input.left ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) || the_whole_level.input.a){
 			velocity.x=std::max(velocity.x-acceleration*mult*the_whole_level.dt,-top_speed);
 			move=true;
 		} 
@@ -1234,12 +1254,14 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 			mult=2;
 			lossmult=1;
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || the_whole_level.input.down){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) || the_whole_level.input.down ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) || the_whole_level.input.s){
 			velocity.y=std::min(velocity.y+acceleration*mult*the_whole_level.dt,top_speed);
 			move=true;
 		} 
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || the_whole_level.input.up){
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up) || the_whole_level.input.up ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W) || the_whole_level.input.w){
 			velocity.y=std::max(velocity.y-acceleration*mult*the_whole_level.dt,-top_speed);
 			move=true;
 		} 

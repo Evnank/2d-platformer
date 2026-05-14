@@ -242,6 +242,16 @@ redwall 25 -11 0
 redwall 25 -10 0
 redwall 25 -9 0
 wall 25 1
+wall 26 -45
+wall 26 -44
+wall 26 -43
+wall 26 -42
+wall 26 -41
+wall 26 -40
+wall 26 -39
+wall 26 -38
+wall 26 -37
+wall 26 -36
 wall 26 -35
 wall 26 -32
 wall 26 -31
@@ -292,6 +302,19 @@ wall 36 1
 bluewall 37 -24 0
 redwall 37 -10 0
 wall 37 1
+wall 38 -48
+wall 38 -47
+wall 38 -46
+wall 38 -45
+wall 38 -44
+wall 38 -43
+wall 38 -42
+wall 38 -41
+wall 38 -40
+wall 38 -39
+wall 38 -38
+wall 38 -37
+wall 38 -36
 wall 38 -35
 wall 38 -34
 wall 38 -33

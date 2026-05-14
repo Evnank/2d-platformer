@@ -1,5 +1,7 @@
-player 0 0
 finish 0 -136
+
+player 0 0
+
 checkpoint 25 -18
 checkpoint -1 -18
 checkpoint 3 -38
@@ -11,6 +13,7 @@ checkpoint -1 -80
 checkpoint 9 -80
 checkpoint 3 -85
 checkpoint 24 -129
+
 
 wall -5 -139
 wall -5 -138
@@ -205,7 +208,6 @@ wall -4 -87
 wall -4 -86
 wall -4 -85
 wall -4 -84
-bouncy -4 -83
 spike -4 -66
 wall -4 -65
 wall -4 -57
@@ -221,7 +223,6 @@ wall -4 1
 wall -3 -139
 wall -3 -134
 wall -3 -84
-bouncy -3 -83
 wall -3 -79
 spike -3 -66
 wall -3 -65
@@ -236,7 +237,6 @@ wall -3 1
 wall -2 -139
 wall -2 -134
 wall -2 -84
-wall -2 -83
 wall -2 -79
 spike -2 -66
 wall -2 -65
