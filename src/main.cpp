@@ -698,12 +698,12 @@ void mouse_block_placing(TheWholeLevel& the_whole_level){
 							the_whole_level.walls_map[{cordx,cordy}]=wall;
 						}
 					} else {
-						if (the_whole_level.editor_block_type!="bluebutton"){
+						if (the_whole_level.editor_block_type=="bluebutton"){
 							BlueGameButton cur_button;
 							cur_button.sprite.setPosition({float(cordx*64.f),float(cordy*64.f)});
 							the_whole_level.BlueButtons[{cordx,cordy}]=cur_button;
 						}
-						if (the_whole_level.editor_block_type!="redbutton"){
+						if (the_whole_level.editor_block_type=="redbutton"){
 							RedGameButton cur_button;
 							cur_button.sprite.setPosition({float(cordx*64.f),float(cordy*64.f)});
 							the_whole_level.RedButtons[{cordx,cordy}]=cur_button;
