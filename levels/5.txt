@@ -9,7 +9,7 @@ checkpoint 77 -70
 checkpoint 94 -72
 
 bluebutton -2 0
-bluebutton 12 -7
+bluebutton 13 -7
 bluebutton 27 -24
 bluebutton 27 -15
 bluebutton 29 -21
@@ -21,7 +21,7 @@ bluebutton 74 -70
 bluebutton 75 -37
 bluebutton 88 -82
 bluebutton 89 -80
-bluebutton 91 -72
+bluebutton 92 -75
 bluebutton 103 -77
 bluebutton 108 -80
 bluebutton 112 -83
@@ -108,6 +108,7 @@ bluewall 8 -13 0
 spike 8 0
 wall 8 1
 bluewall 9 -13 0
+bluewall 9 -7 0
 bluewall 9 -1 0
 spike 9 0
 wall 9 1
@@ -129,6 +130,8 @@ bluewall 15 -10 0
 bluewall 15 -4 1
 spike 15 0
 wall 15 1
+bluewall 16 -10 0
+bluewall 16 -4 1
 spike 16 0
 wall 16 1
 spike 17 0
@@ -516,6 +519,7 @@ wall 64 -14
 spike 64 0
 wall 64 1
 wall 65 -86
+bluewall 65 -38 1
 wall 65 -28
 redwall 65 -23 1
 jumppad 65 -15
@@ -524,6 +528,7 @@ spike 65 0
 wall 65 1
 wall 66 -86
 redwall 66 -67 0
+bluewall 66 -38 1
 wall 66 -28
 wall 66 -24
 wall 66 -23
@@ -626,7 +631,7 @@ wall 74 -63
 wall 74 -62
 wall 74 -45
 redwall 74 -35 0
-redwall 74 -34 0
+bluewall 74 -34 1
 redwall 74 -33 0
 wall 74 -24
 spike 74 0
@@ -642,6 +647,9 @@ wall 75 -69
 spike 75 -63
 wall 75 -62
 wall 75 -45
+redwall 75 -35 0
+redwall 75 -34 0
+redwall 75 -33 0
 wall 75 -24
 spike 75 0
 wall 75 1

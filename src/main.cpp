@@ -7,9 +7,111 @@
 #include <algorithm>
 #include <optional>
 #include <map>
+#include <cstdint>
+#include <filesystem>
+#include <sstream>
+#include <system_error>
+#include "embedded_assets.hpp"
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#else
+#include <unistd.h>
+#endif
 
 bool RESET_THE_WHOLE_SAVE=false;
 bool UNLOCK_ALL_LEVELS=false;
+
+namespace {
+bool loadTextureFromEmbedded(sf::Texture& texture, std::string_view path){
+	const auto asset=embedded_assets::find(path);
+	if (!asset){
+		std::cerr<<"embedded asset not found: "<<path<<'\n';
+		return false;
+	}
+	if (!texture.loadFromMemory(asset->data,asset->size)){
+		std::cerr<<"failed to load texture from embedded asset: "<<path<<'\n';
+		return false;
+	}
+	return true;
+}
+
+bool openFontFromEmbedded(sf::Font& font, std::string_view path){
+	const auto asset=embedded_assets::find(path);
+	if (!asset){
+		std::cerr<<"embedded asset not found: "<<path<<'\n';
+		return false;
+	}
+	if (!font.openFromMemory(asset->data,asset->size)){
+		std::cerr<<"failed to load font from embedded asset: "<<path<<'\n';
+		return false;
+	}
+	return true;
+}
+
+std::optional<std::string> loadEmbeddedText(std::string_view path){
+	const auto asset=embedded_assets::find(path);
+	if (!asset){
+		return std::nullopt;
+	}
+	return std::string(reinterpret_cast<const char*>(asset->data),asset->size);
+}
+
+std::filesystem::path getExecutableDirectory(){
+#ifdef _WIN32
+	std::wstring buffer(1024,L'\0');
+	while (true){
+		const DWORD length=GetModuleFileNameW(nullptr,buffer.data(),static_cast<DWORD>(buffer.size()));
+		if (length==0){
+			return std::filesystem::current_path();
+		}
+		if (length<buffer.size()){
+			buffer.resize(length);
+			return std::filesystem::path(buffer).parent_path();
+		}
+		buffer.resize(buffer.size()*2);
+	}
+#elif defined(__APPLE__)
+	uint32_t size=0;
+	_NSGetExecutablePath(nullptr,&size);
+	std::vector<char> buffer(size);
+	if (_NSGetExecutablePath(buffer.data(),&size)==0){
+		return std::filesystem::path(buffer.data()).parent_path();
+	}
+	return std::filesystem::current_path();
+#else
+	std::vector<char> buffer(1024);
+	while (true){
+		const ssize_t length=readlink("/proc/self/exe",buffer.data(),buffer.size());
+		if (length<0){
+			return std::filesystem::current_path();
+		}
+		if (static_cast<std::size_t>(length)<buffer.size()){
+			return std::filesystem::path(std::string(buffer.data(),static_cast<std::size_t>(length))).parent_path();
+		}
+		buffer.resize(buffer.size()*2);
+	}
+#endif
+}
+
+const std::filesystem::path& executableDirectory(){
+	static const std::filesystem::path directory=getExecutableDirectory();
+	return directory;
+}
+
+std::filesystem::path runtimeLevelPath(int level){
+	return executableDirectory()/"levels"/(std::to_string(level)+".txt");
+}
+
+std::filesystem::path runtimeSettingsPath(){
+	return executableDirectory()/"settings.txt";
+}
+}
 
 
 struct Input{
@@ -132,38 +234,38 @@ struct Assets{
 	sf::Texture BlueButton_texture;
 	sf::Texture PurpleButton_texture;
 	void LoadAllTextures(){
-		if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
-		if (!player_texture.loadFromFile("../../assets/textures/PlayerTexture.png")){}
-		if (!wall_texture.loadFromFile("../../assets/textures/WallTexture.png")){}
-		if (!finish_texture.loadFromFile("../../assets/textures/FinishTexture.png")){}
-		if (!checkpoint_texture1.loadFromFile("../../assets/textures/CheckpointTexture.png")){}
-		if (!Win0_texture.loadFromFile("../../assets/textures/Win0.png")){}
-		if (!Win1_texture.loadFromFile("../../assets/textures/Win1.png")){}
-		if (!Win2_texture.loadFromFile("../../assets/textures/Win2.png")){}
-		if (!Win3_texture.loadFromFile("../../assets/textures/Win3.png")){}
-		if (!sky_texture.loadFromFile("../../assets/textures/SkyTexture.png")){}
-		if (!Menu0_texture.loadFromFile("../../assets/textures/Menu0.png")){}
-		if (!Menu1_texture.loadFromFile("../../assets/textures/Menu1.png")){}
-		if (!Menu2_texture.loadFromFile("../../assets/textures/Menu2.png")){}
-		if (!Menu3_texture.loadFromFile("../../assets/textures/Menu3.png")){}
-		if (!Menu4_texture.loadFromFile("../../assets/textures/Menu4.png")){}
-		if (!Button0_texture.loadFromFile("../../assets/textures/Button0.png")){}
-		if (!Button1_texture.loadFromFile("../../assets/textures/Button1.png")){}
-		if (!Bouncy_texture.loadFromFile("../../assets/textures/Bouncy.png")){}
-		if (!Spike_texture.loadFromFile("../../assets/textures/Spike.png")){}
-		if (!JumpPad_texture.loadFromFile("../../assets/textures/JumpPad.png")){}
-		if (!BlueWall_texture.loadFromFile("../../assets/textures/BlueWall.png")){}
-		if (!RedWall_texture.loadFromFile("../../assets/textures/RedWall.png")){}
-		if (!PurpleWall_texture.loadFromFile("../../assets/textures/PurpleWall.png")){}
+		openFontFromEmbedded(font,"assets/fonts/arial.ttf");
+		loadTextureFromEmbedded(player_texture,"assets/textures/PlayerTexture.png");
+		loadTextureFromEmbedded(wall_texture,"assets/textures/WallTexture.png");
+		loadTextureFromEmbedded(finish_texture,"assets/textures/FinishTexture.png");
+		loadTextureFromEmbedded(checkpoint_texture1,"assets/textures/CheckpointTexture.png");
+		loadTextureFromEmbedded(Win0_texture,"assets/textures/Win0.png");
+		loadTextureFromEmbedded(Win1_texture,"assets/textures/Win1.png");
+		loadTextureFromEmbedded(Win2_texture,"assets/textures/Win2.png");
+		loadTextureFromEmbedded(Win3_texture,"assets/textures/Win3.png");
+		loadTextureFromEmbedded(sky_texture,"assets/textures/SkyTexture.png");
+		loadTextureFromEmbedded(Menu0_texture,"assets/textures/Menu0.png");
+		loadTextureFromEmbedded(Menu1_texture,"assets/textures/Menu1.png");
+		loadTextureFromEmbedded(Menu2_texture,"assets/textures/Menu2.png");
+		loadTextureFromEmbedded(Menu3_texture,"assets/textures/Menu3.png");
+		loadTextureFromEmbedded(Menu4_texture,"assets/textures/Menu4.png");
+		loadTextureFromEmbedded(Button0_texture,"assets/textures/Button0.png");
+		loadTextureFromEmbedded(Button1_texture,"assets/textures/Button1.png");
+		loadTextureFromEmbedded(Bouncy_texture,"assets/textures/Bouncy.png");
+		loadTextureFromEmbedded(Spike_texture,"assets/textures/Spike.png");
+		loadTextureFromEmbedded(JumpPad_texture,"assets/textures/JumpPad.png");
+		loadTextureFromEmbedded(BlueWall_texture,"assets/textures/BlueWall.png");
+		loadTextureFromEmbedded(RedWall_texture,"assets/textures/RedWall.png");
+		loadTextureFromEmbedded(PurpleWall_texture,"assets/textures/PurpleWall.png");
 
-		if (!LevelButton0_texture.loadFromFile("../../assets/textures/LevelButton0.png")){}
-		if (!LevelButton1_texture.loadFromFile("../../assets/textures/LevelButton1.png")){}
-		if (!LevelButtonClick_texture.loadFromFile("../../assets/textures/LevelButtonClick.png")){}
-		if (!LevelButtonCur_texture.loadFromFile("../../assets/textures/LevelButtonCur.png")){}
+		loadTextureFromEmbedded(LevelButton0_texture,"assets/textures/LevelButton0.png");
+		loadTextureFromEmbedded(LevelButton1_texture,"assets/textures/LevelButton1.png");
+		loadTextureFromEmbedded(LevelButtonClick_texture,"assets/textures/LevelButtonClick.png");
+		loadTextureFromEmbedded(LevelButtonCur_texture,"assets/textures/LevelButtonCur.png");
 
-		if (!RedButton_texture.loadFromFile("../../assets/textures/RedButton.png")){}
-		if (!BlueButton_texture.loadFromFile("../../assets/textures/BlueButton.png")){}
-		if (!PurpleButton_texture.loadFromFile("../../assets/textures/PurpleButton.png")){}
+		loadTextureFromEmbedded(RedButton_texture,"assets/textures/RedButton.png");
+		loadTextureFromEmbedded(BlueButton_texture,"assets/textures/BlueButton.png");
+		loadTextureFromEmbedded(PurpleButton_texture,"assets/textures/PurpleButton.png");
 	}
 };
 Assets global_assets;
@@ -563,11 +665,7 @@ struct TheWholeLevel{
 	}
 };
 
-void LoadLevel(TheWholeLevel& the_whole_level){
-	std::string level_load_string="../../assets/levels/";
-	level_load_string+=(std::to_string(the_whole_level.player.current_level));
-	level_load_string+=(".txt");
-	std::ifstream file(level_load_string);
+void LoadLevelFromStream(TheWholeLevel& the_whole_level, std::istream& file){
 	std::string type;
 	the_whole_level.walls_map.clear();
 	the_whole_level.checkpoints.clear();
@@ -682,11 +780,36 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 	}
 }
 
+void LoadLevel(TheWholeLevel& the_whole_level){
+	const std::string level_file_name=std::to_string(the_whole_level.player.current_level)+".txt";
+	const std::filesystem::path level_path=runtimeLevelPath(the_whole_level.player.current_level);
+	std::ifstream file(level_path);
+	if (file.is_open()){
+		LoadLevelFromStream(the_whole_level,file);
+		return;
+	}
+
+	const std::string embedded_path="levels/"+level_file_name;
+	if (const auto embedded_level=loadEmbeddedText(embedded_path)){
+		std::istringstream embedded_stream(*embedded_level);
+		LoadLevelFromStream(the_whole_level,embedded_stream);
+		return;
+	}
+
+	std::cerr<<"level_load_error: "<<level_path<<" or embedded "<<embedded_path<<'\n';
+	std::istringstream empty_stream;
+	LoadLevelFromStream(the_whole_level,empty_stream);
+}
+
 void update_level_file(TheWholeLevel& the_whole_level){
-	std::string level_write_string="../../assets/levels/";
-	level_write_string+=(std::to_string(the_whole_level.player.current_level));
-	level_write_string+=(".txt");
-	std::ofstream level_file(level_write_string);
+	const std::filesystem::path levels_directory=executableDirectory()/"levels";
+	std::error_code directory_error;
+	std::filesystem::create_directories(levels_directory,directory_error);
+	if (directory_error){
+		std::cerr<<"create_levels_directory_error: "<<levels_directory<<" "<<directory_error.message()<<'\n';
+	}
+	const std::filesystem::path level_write_path=levels_directory/(std::to_string(the_whole_level.player.current_level)+".txt");
+	std::ofstream level_file(level_write_path);
 	if (level_file.is_open()){
 		level_file<<"finish "<<the_whole_level.player.finish.block_cords.x<<" "<<the_whole_level.player.finish.block_cords.y<<"\n";
 		level_file<<"\n";
@@ -715,7 +838,7 @@ void update_level_file(TheWholeLevel& the_whole_level){
 		}
 
 	} else{
-		std::cout<<"write_file_error\n";
+		std::cout<<"write_file_error: "<<level_write_path<<"\n";
 	}
 }
 
@@ -878,9 +1001,8 @@ void fly_draw(TheWholeLevel& the_whole_level){
 	}
 }
 
-void LoadGame(TheWholeLevel& the_whole_level){
+void LoadGameFromStream(TheWholeLevel& the_whole_level, std::istream& file){
 	int a;
-	std::fstream file("../../assets/settings.txt");
 	file>>a; 
 	the_whole_level.PLACING_BLOCKS=(a==1);
 	file>>a; 
@@ -895,9 +1017,31 @@ void LoadGame(TheWholeLevel& the_whole_level){
 	the_whole_level.max_level=a;
 }
 
+void LoadGame(TheWholeLevel& the_whole_level){
+	const std::filesystem::path settings_path=runtimeSettingsPath();
+	std::ifstream file(settings_path);
+	if (file.is_open()){
+		LoadGameFromStream(the_whole_level,file);
+		return;
+	}
+
+	if (const auto embedded_settings=loadEmbeddedText("settings.txt")){
+		std::istringstream embedded_stream(*embedded_settings);
+		LoadGameFromStream(the_whole_level,embedded_stream);
+		return;
+	}
+
+	std::cerr<<"settings_load_error: "<<settings_path<<" or embedded settings.txt\n";
+}
+
 void SaveGame(TheWholeLevel& the_whole_level){
 	int a;
-	std::ofstream file("../../assets/settings.txt");
+	const std::filesystem::path settings_path=runtimeSettingsPath();
+	std::ofstream file(settings_path);
+	if (!file.is_open()){
+		std::cout<<"settings_write_error: "<<settings_path<<"\n";
+		return;
+	}
 	a=0; if (the_whole_level.PLACING_BLOCKS){a=1;}
 	file<<a<<'\n';
 	a=0; if (the_whole_level.CHEAT_MODE){a=1;}
