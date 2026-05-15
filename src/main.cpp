@@ -131,39 +131,43 @@ struct Assets{
 	sf::Texture RedButton_texture;
 	sf::Texture BlueButton_texture;
 	sf::Texture PurpleButton_texture;
+
+	std::string path_add="";
 	void LoadAllTextures(){
-		if (!font.openFromFile("../../assets/fonts/arial.ttf")){}
-		if (!player_texture.loadFromFile("../../assets/textures/PlayerTexture.png")){}
-		if (!wall_texture.loadFromFile("../../assets/textures/WallTexture.png")){}
-		if (!finish_texture.loadFromFile("../../assets/textures/FinishTexture.png")){}
-		if (!checkpoint_texture1.loadFromFile("../../assets/textures/CheckpointTexture.png")){}
-		if (!Win0_texture.loadFromFile("../../assets/textures/Win0.png")){}
-		if (!Win1_texture.loadFromFile("../../assets/textures/Win1.png")){}
-		if (!Win2_texture.loadFromFile("../../assets/textures/Win2.png")){}
-		if (!Win3_texture.loadFromFile("../../assets/textures/Win3.png")){}
-		if (!sky_texture.loadFromFile("../../assets/textures/SkyTexture.png")){}
-		if (!Menu0_texture.loadFromFile("../../assets/textures/Menu0.png")){}
-		if (!Menu1_texture.loadFromFile("../../assets/textures/Menu1.png")){}
-		if (!Menu2_texture.loadFromFile("../../assets/textures/Menu2.png")){}
-		if (!Menu3_texture.loadFromFile("../../assets/textures/Menu3.png")){}
-		if (!Menu4_texture.loadFromFile("../../assets/textures/Menu4.png")){}
-		if (!Button0_texture.loadFromFile("../../assets/textures/Button0.png")){}
-		if (!Button1_texture.loadFromFile("../../assets/textures/Button1.png")){}
-		if (!Bouncy_texture.loadFromFile("../../assets/textures/Bouncy.png")){}
-		if (!Spike_texture.loadFromFile("../../assets/textures/Spike.png")){}
-		if (!JumpPad_texture.loadFromFile("../../assets/textures/JumpPad.png")){}
-		if (!BlueWall_texture.loadFromFile("../../assets/textures/BlueWall.png")){}
-		if (!RedWall_texture.loadFromFile("../../assets/textures/RedWall.png")){}
-		if (!PurpleWall_texture.loadFromFile("../../assets/textures/PurpleWall.png")){}
+		if (!font.openFromFile(path_add+"assets/fonts/arial.ttf")){path_add="../../";} 
+		if (!font.openFromFile(path_add+"assets/fonts/arial.ttf")){} 
 
-		if (!LevelButton0_texture.loadFromFile("../../assets/textures/LevelButton0.png")){}
-		if (!LevelButton1_texture.loadFromFile("../../assets/textures/LevelButton1.png")){}
-		if (!LevelButtonClick_texture.loadFromFile("../../assets/textures/LevelButtonClick.png")){}
-		if (!LevelButtonCur_texture.loadFromFile("../../assets/textures/LevelButtonCur.png")){}
+		if (!player_texture.loadFromFile(path_add+"assets/textures/PlayerTexture.png")){}
+		if (!wall_texture.loadFromFile(path_add+"assets/textures/WallTexture.png")){}
+		if (!finish_texture.loadFromFile(path_add+"assets/textures/FinishTexture.png")){}
+		if (!checkpoint_texture1.loadFromFile(path_add+"assets/textures/CheckpointTexture.png")){}
+		if (!Win0_texture.loadFromFile(path_add+"assets/textures/Win0.png")){}
+		if (!Win1_texture.loadFromFile(path_add+"assets/textures/Win1.png")){}
+		if (!Win2_texture.loadFromFile(path_add+"assets/textures/Win2.png")){}
+		if (!Win3_texture.loadFromFile(path_add+"assets/textures/Win3.png")){}
+		if (!sky_texture.loadFromFile(path_add+"assets/textures/SkyTexture.png")){}
+		if (!Menu0_texture.loadFromFile(path_add+"assets/textures/Menu0.png")){}
+		if (!Menu1_texture.loadFromFile(path_add+"assets/textures/Menu1.png")){}
+		if (!Menu2_texture.loadFromFile(path_add+"assets/textures/Menu2.png")){}
+		if (!Menu3_texture.loadFromFile(path_add+"assets/textures/Menu3.png")){}
+		if (!Menu4_texture.loadFromFile(path_add+"assets/textures/Menu4.png")){}
+		if (!Button0_texture.loadFromFile(path_add+"assets/textures/Button0.png")){}
+		if (!Button1_texture.loadFromFile(path_add+"assets/textures/Button1.png")){}
+		if (!Bouncy_texture.loadFromFile(path_add+"assets/textures/Bouncy.png")){}
+		if (!Spike_texture.loadFromFile(path_add+"assets/textures/Spike.png")){}
+		if (!JumpPad_texture.loadFromFile(path_add+"assets/textures/JumpPad.png")){}
+		if (!BlueWall_texture.loadFromFile(path_add+"assets/textures/BlueWall.png")){}
+		if (!RedWall_texture.loadFromFile(path_add+"assets/textures/RedWall.png")){}
+		if (!PurpleWall_texture.loadFromFile(path_add+"assets/textures/PurpleWall.png")){}
 
-		if (!RedButton_texture.loadFromFile("../../assets/textures/RedButton.png")){}
-		if (!BlueButton_texture.loadFromFile("../../assets/textures/BlueButton.png")){}
-		if (!PurpleButton_texture.loadFromFile("../../assets/textures/PurpleButton.png")){}
+		if (!LevelButton0_texture.loadFromFile(path_add+"assets/textures/LevelButton0.png")){}
+		if (!LevelButton1_texture.loadFromFile(path_add+"assets/textures/LevelButton1.png")){}
+		if (!LevelButtonClick_texture.loadFromFile(path_add+"assets/textures/LevelButtonClick.png")){}
+		if (!LevelButtonCur_texture.loadFromFile(path_add+"assets/textures/LevelButtonCur.png")){}
+
+		if (!RedButton_texture.loadFromFile(path_add+"assets/textures/RedButton.png")){}
+		if (!BlueButton_texture.loadFromFile(path_add+"assets/textures/BlueButton.png")){}
+		if (!PurpleButton_texture.loadFromFile(path_add+"assets/textures/PurpleButton.png")){}
 	}
 };
 Assets global_assets;
@@ -564,7 +568,7 @@ struct TheWholeLevel{
 };
 
 void LoadLevel(TheWholeLevel& the_whole_level){
-	std::string level_load_string="../../assets/levels/";
+	std::string level_load_string=global_assets.path_add+"assets/levels/";
 	level_load_string+=(std::to_string(the_whole_level.player.current_level));
 	level_load_string+=(".txt");
 	std::ifstream file(level_load_string);
@@ -683,7 +687,7 @@ void LoadLevel(TheWholeLevel& the_whole_level){
 }
 
 void update_level_file(TheWholeLevel& the_whole_level){
-	std::string level_write_string="../../assets/levels/";
+	std::string level_write_string=global_assets.path_add+"assets/levels/";
 	level_write_string+=(std::to_string(the_whole_level.player.current_level));
 	level_write_string+=(".txt");
 	std::ofstream level_file(level_write_string);
@@ -880,7 +884,7 @@ void fly_draw(TheWholeLevel& the_whole_level){
 
 void LoadGame(TheWholeLevel& the_whole_level){
 	int a;
-	std::fstream file("../../assets/settings.txt");
+	std::fstream file(global_assets.path_add+"assets/settings.txt");
 	file>>a; 
 	the_whole_level.PLACING_BLOCKS=(a==1);
 	file>>a; 
@@ -897,7 +901,7 @@ void LoadGame(TheWholeLevel& the_whole_level){
 
 void SaveGame(TheWholeLevel& the_whole_level){
 	int a;
-	std::ofstream file("../../assets/settings.txt");
+	std::ofstream file(global_assets.path_add+"assets/settings.txt");
 	a=0; if (the_whole_level.PLACING_BLOCKS){a=1;}
 	file<<a<<'\n';
 	a=0; if (the_whole_level.CHEAT_MODE){a=1;}
