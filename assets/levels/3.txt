@@ -78,8 +78,8 @@ wall -5 -80
 wall -5 -79
 wall -5 -78
 jumppad -5 -77
-wall -5 -76
-wall -5 -75
+jumppad -5 -76
+jumppad -5 -75
 wall -5 -74
 wall -5 -73
 wall -5 -72
@@ -179,7 +179,7 @@ wall -4 -116
 wall -4 -115
 wall -4 -114
 jumppad -4 -113
-wall -4 -112
+jumppad -4 -112
 wall -4 -111
 wall -4 -110
 wall -4 -109
@@ -189,7 +189,7 @@ wall -4 -106
 wall -4 -105
 wall -4 -104
 jumppad -4 -103
-wall -4 -102
+jumppad -4 -102
 wall -4 -101
 wall -4 -100
 wall -4 -99
@@ -203,7 +203,7 @@ wall -4 -92
 wall -4 -91
 wall -4 -90
 jumppad -4 -89
-wall -4 -88
+jumppad -4 -88
 wall -4 -87
 wall -4 -86
 wall -4 -85
@@ -607,6 +607,7 @@ wall 15 -64
 wall 15 -63
 wall 15 -62
 wall 15 -61
+jumppad 15 -57
 spike 15 -56
 wall 15 -55
 spike 15 -47
@@ -670,6 +671,7 @@ wall 18 -64
 wall 18 -63
 wall 18 -62
 wall 18 -61
+jumppad 18 -57
 spike 18 -56
 wall 18 -55
 wall 18 -46
@@ -737,6 +739,7 @@ wall 21 -73
 wall 21 -70
 wall 21 -64
 wall 21 -61
+jumppad 21 -57
 spike 21 -56
 wall 21 -55
 wall 21 -46
@@ -811,7 +814,7 @@ wall 24 -61
 wall 24 -60
 wall 24 -59
 wall 24 -58
-wall 24 -57
+jumppad 24 -57
 jumppad 24 -56
 wall 24 -55
 wall 24 -54
