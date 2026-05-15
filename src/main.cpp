@@ -233,6 +233,7 @@ struct Assets{
 	sf::Texture RedButton_texture;
 	sf::Texture BlueButton_texture;
 	sf::Texture PurpleButton_texture;
+
 	void LoadAllTextures(){
 		openFontFromEmbedded(font,"assets/fonts/arial.ttf");
 		loadTextureFromEmbedded(player_texture,"assets/textures/PlayerTexture.png");
