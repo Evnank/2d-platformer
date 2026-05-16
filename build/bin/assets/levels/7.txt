@@ -1,0 +1,10 @@
+finish 157 123
+
+player 0 0
+
+
+
+wall -1 1
+wall 0 1
+wall 1 1
+wall 2 1

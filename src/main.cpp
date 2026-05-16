@@ -429,7 +429,7 @@ struct Sky{
 	float right=0;
 	float bottom=0;
 	float block_size=64.f;
-	float spare=20;
+	float spare=15;
 
 	void reset(){
 		left=10000;
@@ -970,13 +970,16 @@ int main()
 			the_whole_level.player.die=false;
 			the_whole_level.player.sprite.move({the_whole_level.player.velocity.x*the_whole_level.dt,0.f});
 			if (!the_whole_level.FLY_MODE){the_whole_level.player.wall_collision_x(the_whole_level);}
+			std::cout<<"x:  "<<the_whole_level.player.sprite.getPosition().x<<" "<<the_whole_level.player.sprite.getPosition().y<<"\n";
 			the_whole_level.player.sprite.move({0.f,the_whole_level.player.velocity.y*the_whole_level.dt});
 			if (!the_whole_level.FLY_MODE){the_whole_level.player.wall_collision_y(the_whole_level);}
+			std::cout<<"y:  "<<the_whole_level.player.sprite.getPosition().x<<" "<<the_whole_level.player.sprite.getPosition().y<<"\n";
 			the_whole_level.camera.follow_player(the_whole_level);
 		}
 	//settings state
 		if (the_whole_level.player.gamestate=="settings"){
 			the_whole_level.settings.update(the_whole_level);
+			the_whole_level.player.sprite.setPosition({0,0});
 			the_whole_level.sky.reset();
 			the_whole_level.sky.setup({0,0});
 			the_whole_level.sky.setup({30,17});
@@ -1002,12 +1005,12 @@ int main()
 		}
 	//check escape
 		if (the_whole_level.player.gamestate=="win" || the_whole_level.player.gamestate=="escape"){
-			the_whole_level.winscreen.checkmouse(the_whole_level);
+			the_whole_level.winscreen.checkmouse(the_whole_level);	
 		}
 			the_whole_level.clocks.physics_clock.stop();
 
 			the_whole_level.clocks.draw_clock.start();
-
+		
 
 
 	//DRAWING
@@ -1183,22 +1186,23 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 		is_touching_up=false;
 		is_touching_down=false;
 		sf::FloatRect player_rect{sprite.getGlobalBounds()};
-		int xcur=int((sprite.getPosition().x/64.f));
-		int ycur=int((sprite.getPosition().y/64.f));
-		for (int xadd=-1;xadd<=1;xadd++){
-			for (int yadd=-1;yadd<=1;yadd++){
+		int xcur=int(floor(sprite.getPosition().x/64.f));
+		int ycur=int(floor(sprite.getPosition().y/64.f));
+		for (int xadd=0;xadd<=1;xadd++){
+			for (int yadd=0;yadd<=1;yadd++){
 				if (the_whole_level.walls_map.count({xcur+xadd,ycur+yadd})>0){
-					if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].is_visible(the_whole_level)){
-						std::string curtype=the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type;
-						if (player_rect.findIntersection(the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getGlobalBounds())){
+					Wall& cur_wall=the_whole_level.walls_map[{xcur+xadd,ycur+yadd}];
+					if (cur_wall.is_visible(the_whole_level)){
+						std::string curtype=cur_wall.type;
+						if (player_rect.findIntersection(cur_wall.sprite.getGlobalBounds())){
 							if (velocity.x>0){
 								is_touching_right=true;
 								is_touching_left=false;
-								sprite.move({the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().x-sprite.getPosition().x-size.x,0.f});
+								sprite.setPosition({cur_wall.sprite.getPosition().x-size.x,sprite.getPosition().y});
 							} else{
 								is_touching_left=true;
 								is_touching_right=false;
-								sprite.move({the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().x-sprite.getPosition().x+size.x,0.f});
+								sprite.setPosition({cur_wall.sprite.getPosition().x+64.f,sprite.getPosition().y});
 							}	
 								if (curtype=="bouncy"){
 								if (abs(velocity.x)>1){velocity.x*=-1;} else {velocity.x=0;}
@@ -1216,24 +1220,24 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 
 	void Player::wall_collision_y(TheWholeLevel& the_whole_level){
 		sf::FloatRect player_rect{sprite.getGlobalBounds()};
-		int xcur=int((sprite.getPosition().x/64.f));
-		int ycur=int((sprite.getPosition().y/64.f));
-		for (int xadd=-1;xadd<=1;xadd++){
-			for (int yadd=-1;yadd<=1;yadd++){
+		int xcur=int(floor(sprite.getPosition().x/64.f));
+		int ycur=int(floor(sprite.getPosition().y/64.f));
+		for (int xadd=0;xadd<=1;xadd++){
+			for (int yadd=0;yadd<=1;yadd++){
 				if (the_whole_level.walls_map.count({xcur+xadd,ycur+yadd})>0){
-					if (the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].is_visible(the_whole_level)){
-						std::string curtype=the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].type;
-						if (player_rect.findIntersection(the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getGlobalBounds())){
+					Wall& cur_wall=the_whole_level.walls_map[{xcur+xadd,ycur+yadd}];
+					if (cur_wall.is_visible(the_whole_level)){
+						std::string curtype=cur_wall.type;
+						if (player_rect.findIntersection(cur_wall.sprite.getGlobalBounds())){
 							if (velocity.y>0){
 								is_touching_down=true;
 								is_touching_up=false;
-								sprite.move({0.f,the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().y-sprite.getPosition().y-size.y});
+								sprite.setPosition({sprite.getPosition().x,cur_wall.sprite.getPosition().y-size.y});
 							} else{
 								is_touching_up=true;
 								is_touching_down=false;
-								sprite.move({0.f,the_whole_level.walls_map[{xcur+xadd,ycur+yadd}].sprite.getPosition().y-sprite.getPosition().y+size.y});
+								sprite.setPosition({sprite.getPosition().x,cur_wall.sprite.getPosition().y+64.f});
 							}	
-							//velocity.y=-velocity.y;
 							if (curtype=="bouncy"){
 								if (abs(velocity.y)>1 && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down) && !sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)){
 									velocity.y*=-1.f;able_to_jump=false;
