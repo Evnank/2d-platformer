@@ -485,6 +485,7 @@ struct TheWholeLevel{
 	std::string editor_block_type="wall";
 	Input input;
 	Player player;
+	float time_accumulator=0;
 	std::map <std::pair<int,int>,Wall> walls_map;
 	
 	std::vector<Checkpoint> checkpoints;
@@ -925,7 +926,7 @@ int main()
 	LoadGame(the_whole_level);
 	the_whole_level.setup();
 	//the_whole_level.window.setVerticalSyncEnabled(true);
-	//the_whole_level.window.setFramerateLimit(1);
+	//the_whole_level.window.setFramerateLimit(15);
 	the_whole_level.clocks.time_analysis=true;
 	the_whole_level.clocks.FPS_clock.restart();
 
@@ -949,8 +950,9 @@ int main()
 			the_whole_level.clocks.physics_clock.start();
 		the_whole_level.dt=delta_clock.getElapsedTime()/delta_time;
 		delta_clock.restart();
-		if (the_whole_level.dt>1){the_whole_level.dt=1;}
-
+		the_whole_level.time_accumulator+=the_whole_level.dt;
+		if (the_whole_level.dt>0){the_whole_level.dt=1;}
+		if (the_whole_level.player.gamestate!="playing"){the_whole_level.time_accumulator=0;}
 
 		
 	//playing state
@@ -960,26 +962,28 @@ int main()
 		//respawning
 			the_whole_level.update_buttons(the_whole_level);
 			the_whole_level.player.checkpoint_colliion(the_whole_level);
-			the_whole_level.player.respawn_player(the_whole_level);
+			the_whole_level.player.respawn_player(the_whole_level);	
 		//changing velocity
+			while (the_whole_level.time_accumulator>=the_whole_level.dt){
 			the_whole_level.player.sideways_movement(the_whole_level);
 			the_whole_level.player.jumpIfPossible(the_whole_level);
 			the_whole_level.player.gravity(the_whole_level);
 		//moving
-			the_whole_level.player.able_to_jump=true;
+				the_whole_level.time_accumulator-=the_whole_level.dt;
+				the_whole_level.player.able_to_jump=true;
 			the_whole_level.player.die=false;
 			the_whole_level.player.sprite.move({the_whole_level.player.velocity.x*the_whole_level.dt,0.f});
 			if (!the_whole_level.FLY_MODE){the_whole_level.player.wall_collision_x(the_whole_level);}
-			std::cout<<"x:  "<<the_whole_level.player.sprite.getPosition().x<<" "<<the_whole_level.player.sprite.getPosition().y<<"\n";
 			the_whole_level.player.sprite.move({0.f,the_whole_level.player.velocity.y*the_whole_level.dt});
 			if (!the_whole_level.FLY_MODE){the_whole_level.player.wall_collision_y(the_whole_level);}
-			std::cout<<"y:  "<<the_whole_level.player.sprite.getPosition().x<<" "<<the_whole_level.player.sprite.getPosition().y<<"\n";
 			the_whole_level.camera.follow_player(the_whole_level);
+			}	
 		}
 	//settings state
 		if (the_whole_level.player.gamestate=="settings"){
 			the_whole_level.settings.update(the_whole_level);
 			the_whole_level.player.sprite.setPosition({0,0});
+			the_whole_level.camera.follow_player(the_whole_level);
 			the_whole_level.sky.reset();
 			the_whole_level.sky.setup({0,0});
 			the_whole_level.sky.setup({30,17});
