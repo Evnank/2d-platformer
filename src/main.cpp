@@ -515,7 +515,7 @@ struct TheWholeLevel{
 	int cur_max_unlocked_level=1;
 
 	void setup(){
-		window.create(sf::VideoMode({1920, 1080}), "SFML works!", sf::State::Fullscreen);
+		window.create(sf::VideoMode({1920, 1080}), "SFML works!");
 		camera.setup();
 		player.current_level=1;
 		settings.setup();
@@ -962,9 +962,9 @@ int main()
 		//respawning
 			the_whole_level.update_buttons(the_whole_level);
 			the_whole_level.player.checkpoint_colliion(the_whole_level);
-			the_whole_level.player.respawn_player(the_whole_level);	
 		//changing velocity
 			while (the_whole_level.time_accumulator>=the_whole_level.dt){
+			the_whole_level.player.respawn_player(the_whole_level);	
 			the_whole_level.player.sideways_movement(the_whole_level);
 			the_whole_level.player.jumpIfPossible(the_whole_level);
 			the_whole_level.player.gravity(the_whole_level);
@@ -1343,7 +1343,7 @@ void WinScreen::draw(TheWholeLevel& the_whole_level){
 
 	void Player::respawn_player(TheWholeLevel& the_whole_level){
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) || the_whole_level.input.F){
-			checkpoint_countdown-=2*the_whole_level.dt;
+			checkpoint_countdown-=1.5*the_whole_level.dt;
 		} else {checkpoint_countdown=50;}
 		if (checkpoint_countdown<=0 || the_whole_level.player.die){
 			checkpoint_countdown=50;
